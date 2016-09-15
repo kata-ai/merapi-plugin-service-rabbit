@@ -1,0 +1,31 @@
+{
+  "name": "@yesboss/merapi-plugin-service-rabbit",
+  "version": "0.1.0",
+  "description": "Provide RabbitMQ integration interface",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://bitbucket.org/yesboss/merapi-plugin-service-rabbit.git"
+  },
+  "keywords": [
+    "merapi",
+    "microservice",
+    "rabbitmq"
+  ],
+  "author": "Ikmal Syifai <ikmal@yesbossnow.com>",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/yesboss/merapi-plugin-service-rabbit#readme",
+  "dependencies": {
+    "@yesboss/merapi": "^0.10.5",
+    "@yesboss/merapi-plugin-service": "git+ssh://git@bitbucket.org/yesboss/merapi-plugin-service.git#develop",
+    "amqplib": "^0.4.2"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "istanbul": "^0.4.5",
+    "mocha": "^2.5.3"
+  }
+}

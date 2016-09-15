@@ -1,0 +1,44 @@
+{
+    "env": {
+        "browser": true,
+        "commonjs": true,
+        "node": true
+    },
+    "extends": "eslint:recommended",
+    "parserOptions": {
+        "ecmaVersion": 6
+    },
+    "ecmaFeatures": {
+        "modules": false
+    },
+    "rules": {
+        "indent": [
+            "warn",
+            4
+        ],
+        "linebreak-style": [
+            "warn",
+            "unix"
+        ],
+        "quotes": [
+            "warn",
+            "double"
+        ],
+        "semi": [
+            "warn",
+            "always"
+        ],
+        "strict": [
+            "error"
+        ]
+    },
+    "globals": {
+        // ignore these nightwatch globals
+        "describe": false,
+        "before": false,
+        "beforeEach": false,
+        "it": false,
+        "console": false,
+        "Console": false
+    }
+}
