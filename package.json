@@ -4,7 +4,7 @@
   "description": "Provide RabbitMQ integration interface",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "chmod +x ./test.sh; ./test.sh"
   },
   "repository": {
     "type": "git",
@@ -21,11 +21,14 @@
   "dependencies": {
     "@yesboss/merapi": "^0.10.5",
     "@yesboss/merapi-plugin-service": "git+ssh://git@bitbucket.org/yesboss/merapi-plugin-service.git#develop",
-    "amqplib": "^0.4.2"
+    "amqplib": "^0.4.2",
+    "request-promise-native": "^1.0.3"
   },
   "devDependencies": {
     "chai": "^3.5.0",
     "istanbul": "^0.4.5",
-    "mocha": "^2.5.3"
+    "mocha": "^2.5.3",
+    "supertest": "^2.0.0",
+    "then-sleep": "^1.0.1"
   }
 }
