@@ -14,7 +14,6 @@ const async = require("@yesboss/merapi/async");
 describe("Merapi Plugin Service: Publisher", function () {
     let container = {};
     let service = {};
-    let servicePubRabbit = {};
     let connection = {};
     let channel = {};
 
@@ -52,7 +51,6 @@ describe("Merapi Plugin Service: Publisher", function () {
         this.timeout(5000);
 
         service = yield container.resolve("service");
-        servicePubRabbit = yield container.resolve("servicePubRabbit");
         connection = yield amqplib.connect("amqp://localhost");
         channel = yield connection.createChannel();
     }));
@@ -74,18 +72,23 @@ describe("Merapi Plugin Service: Publisher", function () {
         });
 
         describe("when initializing", function () {
+            it("should resolve triggerMessageIncoming", async(function* () {
+                let trigger = yield container.resolve("triggerMessageIncoming");
+                expect(trigger).to.not.be.null;
+            }));
+
             it("should save event list", function () {
                 let servicePubRabbit = service.getModule("pub-rabbit");
                 let expectedPubRabbit = ["message_incoming", "message_outgoing"];
                 expect(servicePubRabbit.getEventList()).to.deep.equal(expectedPubRabbit);
             });
 
-            it("should create exchanges", async(function* () {
+            it("should create exchanges", function () {
                 expect(async(function* () {
                     yield channel.checkExchange("publisher.message_incoming");
                     yield channel.checkExchange("publisher.message_outgoing");
                 })).to.not.throw(Error);
-            }));
+            });
         });
 
         describe("when publishing event", function () {
@@ -94,9 +97,10 @@ describe("Merapi Plugin Service: Publisher", function () {
                 let event = "message_incoming";
                 let exchangeName = "publisher." + event;
                 let payload = { key: "value" };
+                let trigger = yield container.resolve("triggerMessageIncoming");
 
                 yield channel.bindQueue(q.queue, exchangeName, "");
-                servicePubRabbit.publishEvent(event, payload);
+                yield trigger(payload);
                 yield channel.consume(q.queue, function (msg) {
                     expect(msg.content.toString()).to.equal(JSON.stringify(payload));
                 });

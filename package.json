@@ -20,7 +20,7 @@
   "homepage": "https://bitbucket.org/yesboss/merapi-plugin-service-rabbit#readme",
   "dependencies": {
     "@yesboss/merapi": "^0.10.5",
-    "@yesboss/merapi-plugin-service": "git+ssh://git@bitbucket.org/yesboss/merapi-plugin-service.git#develop",
+    "@yesboss/merapi-plugin-service": "git+ssh://git@bitbucket.org/yesboss/merapi-plugin-service.git",
     "amqplib": "^0.4.2",
     "request-promise-native": "^1.0.3"
   },
