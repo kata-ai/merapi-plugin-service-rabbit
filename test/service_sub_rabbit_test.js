@@ -44,7 +44,7 @@ describe("Merapi Plugin Service: Subscriber", function () {
                         "yb-core": "http://localhost:5000"
                     },
                     "notify_interval": 10,
-                    "port": 5002
+                    "port": 5001
                 }
             }
         });
@@ -61,10 +61,9 @@ describe("Merapi Plugin Service: Subscriber", function () {
 
         service = yield container.resolve("service");
         serviceSubRabbit = yield container.resolve("serviceSubRabbit");
-        
         connection = yield amqplib.connect("amqp://localhost");
         channel = yield connection.createChannel();
-        
+
         yield sleep(100);
     }));
 
@@ -84,15 +83,15 @@ describe("Merapi Plugin Service: Subscriber", function () {
         });
 
         describe("when initializing", function () {
-            it("should create a queue", async(function* () {
+            it("should create a queue", function () {
                 expect(async(function* () {
-                    channel.assertQueue("publisher.subscriber.incoming_message");
+                    yield channel.assertQueue("publisher.subscriber.incoming_message");
                 })).to.not.throw(Error);
-            }));
+            });
 
-            it("should save queue list", async(function* () {
+            it("should save queue list", function () {
                 expect(serviceSubRabbit._queues).to.include("publisher.subscriber.incoming_message");
-            }));
+            });
         });
 
     });
