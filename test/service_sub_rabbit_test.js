@@ -13,54 +13,99 @@ const async = require("@yesboss/merapi/async");
 /* eslint-env mocha */
 
 describe("Merapi Plugin Service: Subscriber", function () {
-    let container = {};
+    let publisherContainer, subscriberAContainer, subscriberBContainer;
     let service = {};
     let serviceSubRabbit = {};
     let connection = {};
     let channel = {};
+    let messageA = [];
+    let messageB = [];
 
     before(async(function* () {
 
-        container = merapi({
-            basepath: __dirname,
-            config: {
-                name: "subscriber",
-                version: "1.0.0",
-                main: "mainCom",
-                plugins: [
-                    "service@yesboss"
-                ],
-                service: {
-                    "rabbit": {
-                        "host": "localhost",
-                        "port": 5672
-                    },
-                    "subscribe": {
-                        "yb-core": {
-                            "incoming_message": "mainCom.handleIncomingMessage"
-                        }
-                    },
-                    "registry": {
-                        "yb-core": "http://localhost:5000"
-                    },
-                    "notify_interval": 10,
-                    "port": 5001
+        let publisherConfig = {
+            name: "publisher",
+            version: "1.0.0",
+            main: "mainCom",
+            plugins: [
+                "service@yesboss"
+            ],
+            service: {
+                "rabbit": {
+                    "host": "localhost",
+                    "port": 5672
+                },
+                "publish": {
+                    "message_incoming": "triggerMessageIncoming"
+                },
+                "port": 5001
+            }
+        };
+
+        let subscriberConfig = {
+            name: "subscriber",
+            version: "1.0.0",
+            main: "mainCom",
+            plugins: [
+                "service@yesboss"
+            ],
+            service: {
+                "rabbit": {
+                    "host": "localhost",
+                    "port": 5672
+                },
+                "subscribe": {
+                    "yb-core": {
+                        "incoming_message": "mainCom.handleIncomingMessage"
+                    }
+                },
+                "registry": {
+                    "yb-core": "http://localhost:5001"
                 }
             }
+        };
+
+        publisherContainer = merapi({
+            basepath: __dirname,
+            config: publisherConfig
         });
 
-        container.registerPlugin("service-rabbit@yesboss", require("../index.js")(container));
-        container.register("mainCom", class MainCom extends component {
+        publisherContainer.registerPlugin("service-rabbit@yesboss", require("../index.js")(publisherContainer));
+        publisherContainer.register("mainCom", class MainCom extends component {
             start() { }
-            handleIncomingMessage() { }
+        });
+        publisherContainer.start();
+
+        subscriberConfig.service.port = 5011;
+        subscriberAContainer = merapi({
+            basepath: __dirname,
+            config: subscriberConfig
         });
 
-        container.start();
+        subscriberAContainer.registerPlugin("service-rabbit@yesboss", require("../index.js")(subscriberAContainer));
+        subscriberAContainer.register("mainCom", class MainCom extends component {
+            start() { }
+            *handleIncomingMessage(payload) { messageA.push(payload); }
+        });
+        subscriberAContainer.start();
+
+        subscriberConfig.service.port = 5012;
+        subscriberBContainer = merapi({
+            basepath: __dirname,
+            config: subscriberConfig
+        });
+
+        subscriberBContainer.registerPlugin("service-rabbit@yesboss", require("../index.js")(subscriberAContainer));
+        subscriberBContainer.register("mainCom", class MainCom extends component {
+            start() { }
+            *handleIncomingMessage(payload) { messageB.push(payload); }
+        });
+        subscriberBContainer.start();
 
         this.timeout(5000);
 
-        service = yield container.resolve("service");
-        serviceSubRabbit = yield container.resolve("serviceSubRabbit");
+        service = yield subscriberAContainer.resolve("service");
+        serviceSubRabbit = yield subscriberAContainer.resolve("serviceSubRabbit");
         connection = yield amqplib.connect("amqp://localhost");
         channel = yield connection.createChannel();
 
@@ -68,7 +113,8 @@ describe("Merapi Plugin Service: Subscriber", function () {
     }));
 
     after(function () {
-        container.stop();
+        subscriberAContainer.stop();
+        subscriberBContainer.stop();
     });
 
     describe("Subscriber service", function () {
@@ -83,6 +129,11 @@ describe("Merapi Plugin Service: Subscriber", function () {
         });
 
         describe("when initializing", function () {
+            it("should resolve handleIncomingMessage", async(function* () {
+                expect((yield subscriberAContainer.resolve("mainCom")).handleIncomingMessage).to.not.be.null;
+                expect((yield subscriberBContainer.resolve("mainCom")).handleIncomingMessage).to.not.be.null;
+            }));
+
             it("should create a queue", function () {
                 expect(async(function* () {
                     yield channel.assertQueue("publisher.subscriber.incoming_message");
@@ -92,6 +143,18 @@ describe("Merapi Plugin Service: Subscriber", function () {
             it("should save queue list", function () {
                 expect(serviceSubRabbit._queues).to.include("publisher.subscriber.incoming_message");
             });
+        });
+
+        describe("when subscribing", function () {
+            it("should distribute accross all subscribers using round robin method", async(function* () {
+                for (let i = 0; i < 5; i++) {
+                    channel.publish("publisher.incoming_message", "", Buffer.from(JSON.stringify(i)));
+                }
+
+                yield sleep(20);
+                expect(messageA).to.deep.equal([0, 2, 4]);
+                expect(messageB).to.deep.equal([1, 3]);
+            }));
         });
 
     });
