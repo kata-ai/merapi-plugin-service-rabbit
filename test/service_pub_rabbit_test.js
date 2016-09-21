@@ -4,6 +4,7 @@ const chai = require("chai");
 const expect = chai.expect;
 const request = require("supertest");
 const amqplib = require("amqplib");
+const sleep = require("then-sleep");
 
 const merapi = require("@yesboss/merapi");
 const component = require("@yesboss/merapi/component");
@@ -12,51 +13,62 @@ const async = require("@yesboss/merapi/async");
 /* eslint-env mocha */
 
 describe("Merapi Plugin Service: Publisher", function () {
-    let container = {};
+    let publisherAContainer, publisherBContainer;
     let service = {};
     let connection = {};
     let channel = {};
 
     before(async(function* () {
-        container = merapi({
-            basepath: __dirname,
-            config: {
-                name: "publisher",
-                version: "1.0.0",
-                main: "mainCom",
-                secret: "abc123",
-                plugins: [
-                    "service@yesboss"
-                ],
-                service: {
-                    "rabbit": {
-                        "host": "localhost",
-                        "port": 5672
-                    },
-                    "publish": {
-                        "message_incoming": "triggerMessageIncoming",
-                        "message_outgoing": "triggerMessageOutgoing"
-                    },
-                    "port": 5000
+
+        let publisherConfig = {
+            name: "publisher",
+            version: "1.0.0",
+            main: "mainCom",
+            secret: "abc123",
+            plugins: [
+                "service@yesboss"
+            ],
+            service: {
+                "rabbit": {
+                    "host": "localhost",
+                    "port": 5672
+                },
+                "publish": {
+                    "incoming_message_publisher_test": "triggerIncomingMessagePublisherTest",
+                    "outgoing_message_publisher_test": "triggerOutgoingMessagePublisherTest"
                 }
             }
+        };
+
+        publisherConfig.service.port = 5001;
+        publisherAContainer = merapi({
+            basepath: __dirname,
+            config: publisherConfig
         });
 
-        container.registerPlugin("service-rabbit@yesboss", require("../index.js")(container));
-        container.register("mainCom", class MainCom extends component {
-            start() { }
+        publisherAContainer.registerPlugin("service-rabbit@yesboss", require("../index.js")(publisherAContainer));
+        publisherAContainer.register("mainCom", class MainCom extends component { start() { } });
+        publisherAContainer.start();
+
+        publisherConfig.service.port = 5002;
+        publisherBContainer = merapi({
+            basepath: __dirname,
+            config: publisherConfig
         });
 
-        container.start();
+        publisherBContainer.registerPlugin("service-rabbit@yesboss", require("../index.js")(publisherBContainer));
+        publisherBContainer.register("mainCom", class MainCom extends component { start() { } });
+        publisherBContainer.start();
+
         this.timeout(5000);
 
-        service = yield container.resolve("service");
+        service = yield publisherAContainer.resolve("service");
         connection = yield amqplib.connect("amqp://localhost");
         channel = yield connection.createChannel();
     }));
 
     after(function () {
-        container.stop();
+        publisherAContainer.stop();
     });
 
     describe("Publisher service", function () {
@@ -72,38 +84,62 @@ describe("Merapi Plugin Service: Publisher", function () {
         });
 
         describe("when initializing", function () {
-            it("should resolve triggerMessageIncoming", async(function* () {
-                let trigger = yield container.resolve("triggerMessageIncoming");
+            it("should resolve triggerIncomingMessagePublisherTest", async(function* () {
+                let trigger = yield publisherAContainer.resolve("triggerIncomingMessagePublisherTest");
                 expect(trigger).to.not.be.null;
             }));
 
             it("should save event list", function () {
                 let servicePubRabbit = service.getModule("pub-rabbit");
-                let expectedPubRabbit = ["message_incoming", "message_outgoing"];
+                let expectedPubRabbit = ["incoming_message_publisher_test", "outgoing_message_publisher_test"];
                 expect(servicePubRabbit.getEventList()).to.deep.equal(expectedPubRabbit);
             });
 
             it("should create exchanges", function () {
                 expect(async(function* () {
-                    yield channel.checkExchange("publisher.message_incoming");
-                    yield channel.checkExchange("publisher.message_outgoing");
+                    yield channel.checkExchange("publisher.incoming_message_publisher_test");
+                    yield channel.checkExchange("publisher.outgoing_message_publisher_test");
                 })).to.not.throw(Error);
             });
         });
 
         describe("when publishing event", function () {
+            let q, exchangeName, payload, triggerA, triggerB;
+
             it("should publish event to exchange", async(function* () {
-                let q = yield channel.assertQueue("queue");
-                let event = "message_incoming";
-                let exchangeName = "publisher." + event;
-                let payload = { key: "value" };
-                let trigger = yield container.resolve("triggerMessageIncoming");
+                q = yield channel.assertQueue("queue1");
+                payload = { key: "value" };
+                triggerA = yield publisherAContainer.resolve("triggerIncomingMessagePublisherTest");
+                exchangeName = "publisher.incoming_message_publisher_test";
+                yield triggerA(payload);
 
                 yield channel.bindQueue(q.queue, exchangeName, "");
-                yield trigger(payload);
-                yield channel.consume(q.queue, function (msg) {
+                channel.consume(q.queue, function (msg) {
                     expect(msg.content.toString()).to.equal(JSON.stringify(payload));
+                    channel.ack(msg);
                 });
+            }));
+
+            it("should publish events to the same exchange for same service", async(function* () {
+                q = yield channel.assertQueue("queue2");
+                triggerA = yield publisherAContainer.resolve("triggerOutgoingMessagePublisherTest");
+                triggerB = yield publisherBContainer.resolve("triggerOutgoingMessagePublisherTest");
+                exchangeName = "publisher.outgoing_message_publisher_test";
+
+                for (let i = 0; i < 5; i++) {
+                    if (i % 2 == 0) yield triggerA(i); else yield triggerB(i);
+                    yield sleep(5);
+                }
+
+                let message = [];
+                yield channel.bindQueue(q.queue, exchangeName, "");
+                channel.consume(q.queue, function (msg) {
+                    message.push(msg.content.toString());
+                    channel.ack(msg);
+                });
+
+                yield sleep(10);
+                expect(message).to.deep.equal(["0", "1", "2", "3", "4"]);
             }));
         });
     });

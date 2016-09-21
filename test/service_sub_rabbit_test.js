@@ -36,9 +36,9 @@ describe("Merapi Plugin Service: Subscriber", function () {
                     "port": 5672
                 },
                 "publish": {
-                    "message_incoming": "triggerMessageIncoming"
+                    "incoming_message_subscriber_test": "triggerIncomingMessageSubscriberTest"
                 },
-                "port": 5001
+                "port": 5005
             }
         };
 
@@ -56,11 +56,11 @@ describe("Merapi Plugin Service: Subscriber", function () {
                 },
                 "subscribe": {
                     "yb-core": {
-                        "incoming_message": "mainCom.handleIncomingMessage"
+                        "incoming_message_subscriber_test": "mainCom.handleIncomingMessage"
                     }
                 },
                 "registry": {
-                    "yb-core": "http://localhost:5001"
+                    "yb-core": "http://localhost:5005"
                 }
             }
         };
@@ -136,19 +136,21 @@ describe("Merapi Plugin Service: Subscriber", function () {
 
             it("should create a queue", function () {
                 expect(async(function* () {
-                    yield channel.assertQueue("publisher.subscriber.incoming_message");
+                    yield channel.assertQueue("publisher.subscriber.incoming_message_subscriber_test");
                 })).to.not.throw(Error);
             });
 
             it("should save queue list", function () {
-                expect(serviceSubRabbit._queues).to.include("publisher.subscriber.incoming_message");
+                expect(serviceSubRabbit._queues).to.include("publisher.subscriber.incoming_message_subscriber_test");
             });
         });
 
-        describe("when subscribing", function () {
+        describe("when subscribing event", function () {
             it("should distribute accross all subscribers using round robin method", async(function* () {
+                let trigger = yield publisherContainer.resolve("triggerIncomingMessageSubscriberTest");
+                
                 for (let i = 0; i < 5; i++) {
-                    channel.publish("publisher.incoming_message", "", Buffer.from(JSON.stringify(i)));
+                    yield trigger(i);
                 }
 
                 yield sleep(20);
