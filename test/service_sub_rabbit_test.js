@@ -52,7 +52,8 @@ describe("Merapi Plugin Service: Subscriber", function () {
             service: {
                 "rabbit": {
                     "host": "localhost",
-                    "port": 5672
+                    "port": 5672,
+                    "consumer_prefetch": 1
                 },
                 "subscribe": {
                     "yb-core": {
@@ -153,7 +154,7 @@ describe("Merapi Plugin Service: Subscriber", function () {
                     yield trigger(i);
                 }
 
-                yield sleep(20);
+                yield sleep(1000);
                 expect(messageA).to.deep.equal([0, 2, 4]);
                 expect(messageB).to.deep.equal([1, 3]);
             }));
