@@ -7,8 +7,7 @@ const sleep = require("then-sleep");
 const amqplib = require("amqplib");
 
 const merapi = require("@yesboss/merapi");
-const component = require("@yesboss/merapi/component");
-const async = require("@yesboss/merapi/async");
+const {async, Component} = require("@yesboss/merapi");
 
 /* eslint-env mocha */
 
@@ -53,7 +52,9 @@ describe("Merapi Plugin Service: Subscriber", function () {
                 "rabbit": {
                     "host": "localhost",
                     "port": 5672,
-                    "consumer_prefetch": 1
+                    "consumer_prefetch": 1,
+                    "maxAttemtps": 5,
+                    "retryDelay": 50
                 },
                 "subscribe": {
                     "yb-core": {
@@ -72,7 +73,7 @@ describe("Merapi Plugin Service: Subscriber", function () {
         });
 
         publisherContainer.registerPlugin("service-rabbit@yesboss", require("../index.js")(publisherContainer));
-        publisherContainer.register("mainCom", class MainCom extends component {
+        publisherContainer.register("mainCom", class MainCom extends Component {
             start() { }
         });
         publisherContainer.start();
@@ -84,7 +85,7 @@ describe("Merapi Plugin Service: Subscriber", function () {
         });
 
         subscriberAContainer.registerPlugin("service-rabbit@yesboss", require("../index.js")(subscriberAContainer));
-        subscriberAContainer.register("mainCom", class MainCom extends component {
+        subscriberAContainer.register("mainCom", class MainCom extends Component {
             start() { }
             *handleIncomingMessage(payload) { messageA.push(payload); }
         });
@@ -97,7 +98,7 @@ describe("Merapi Plugin Service: Subscriber", function () {
         });
 
         subscriberBContainer.registerPlugin("service-rabbit@yesboss", require("../index.js")(subscriberAContainer));
-        subscriberBContainer.register("mainCom", class MainCom extends component {
+        subscriberBContainer.register("mainCom", class MainCom extends Component {
             start() { }
             *handleIncomingMessage(payload) { messageB.push(payload); }
         });
