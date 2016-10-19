@@ -52,7 +52,7 @@ describe("Merapi Plugin Service: Subscriber", function () {
                 "rabbit": {
                     "host": "localhost",
                     "port": 5672,
-                    "consumer_prefetch": 1,
+                    "consumerPrefetch": 1,
                     "maxAttemtps": 5,
                     "retryDelay": 50
                 },
