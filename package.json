@@ -1,6 +1,6 @@
 {
   "name": "@yesboss/merapi-plugin-service-rabbit",
-  "version": "0.1.4",
+  "version": "0.1.7",
   "description": "Provide RabbitMQ integration interface",
   "main": "index.js",
   "scripts": {
@@ -19,7 +19,7 @@
   "license": "ISC",
   "homepage": "https://bitbucket.org/yesboss/merapi-plugin-service-rabbit#readme",
   "dependencies": {
-    "@yesboss/merapi": "^0.10.5",
+    "@yesboss/merapi": "^0.13.1",
     "@yesboss/merapi-plugin-service": "^0.2.1",
     "amqplib": "^0.4.2",
     "requestretry": "^1.12.0",
