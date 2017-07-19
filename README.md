@@ -13,7 +13,7 @@ Add plugin to dependency list in `package.json`
     "name": "application",
     "version": "1.0.0",
     "dependencies": {
-        "@yesboss/merapi-plugin-service-rabbit": "^0.1.0"
+        "merapi-plugin-service-rabbit": "^0.1.0"
     }
 }
 ```
@@ -27,8 +27,8 @@ Add plugin to dependency list in `package.json`
     name: "publisher",
     version: "1.0.0",
     plugins: [
-        "service@yesboss",
-        "service-rabbit@yesboss"
+        "service",
+        "service-rabbit"
     ],
     service: {
         "rabbit": {
@@ -50,8 +50,8 @@ Add plugin to dependency list in `package.json`
     name: "subscriber",
     version: "1.0.0",
     plugins: [
-        "service@yesboss",
-        "service-rabbit@yesboss"
+        "service",
+        "service-rabbit"
     ],
     service: {
         "rabbit": {
@@ -164,4 +164,3 @@ class MainCom extends component {
     * Create a RabbitMQ queue
     * Bind the queue to an exchange (exchange's name: `<publisher>.<event>`)
     * Consume its messages
-

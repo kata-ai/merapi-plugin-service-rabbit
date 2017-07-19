@@ -6,8 +6,8 @@ const request = require("supertest");
 const sleep = require("then-sleep");
 const amqplib = require("amqplib");
 
-const merapi = require("@yesboss/merapi");
-const {async, Component} = require("@yesboss/merapi");
+const merapi = require("merapi");
+const { async, Component } = require("merapi");
 
 /* eslint-env mocha */
 
@@ -22,12 +22,14 @@ describe("Merapi Plugin Service: Subscriber", function () {
 
     before(async(function* () {
 
+        this.timeout(5000);
+
         let publisherConfig = {
             name: "publisher",
             version: "1.0.0",
             main: "mainCom",
             plugins: [
-                "service@yesboss"
+                "service"
             ],
             service: {
                 "rabbit": {
@@ -46,7 +48,7 @@ describe("Merapi Plugin Service: Subscriber", function () {
             version: "1.0.0",
             main: "mainCom",
             plugins: [
-                "service@yesboss"
+                "service"
             ],
             service: {
                 "rabbit": {
@@ -72,11 +74,11 @@ describe("Merapi Plugin Service: Subscriber", function () {
             config: publisherConfig
         });
 
-        publisherContainer.registerPlugin("service-rabbit@yesboss", require("../index.js")(publisherContainer));
+        publisherContainer.registerPlugin("service-rabbit", require("../index.js")(publisherContainer));
         publisherContainer.register("mainCom", class MainCom extends Component {
             start() { }
         });
-        publisherContainer.start();
+        yield publisherContainer.start();
 
         subscriberConfig.service.port = 5011;
         subscriberAContainer = merapi({
@@ -84,12 +86,12 @@ describe("Merapi Plugin Service: Subscriber", function () {
             config: subscriberConfig
         });
 
-        subscriberAContainer.registerPlugin("service-rabbit@yesboss", require("../index.js")(subscriberAContainer));
+        subscriberAContainer.registerPlugin("service-rabbit", require("../index.js")(subscriberAContainer));
         subscriberAContainer.register("mainCom", class MainCom extends Component {
             start() { }
             *handleIncomingMessage(payload) { messageA.push(payload); }
         });
-        subscriberAContainer.start();
+        yield subscriberAContainer.start();
 
         subscriberConfig.service.port = 5012;
         subscriberBContainer = merapi({
@@ -97,14 +99,13 @@ describe("Merapi Plugin Service: Subscriber", function () {
             config: subscriberConfig
         });
 
-        subscriberBContainer.registerPlugin("service-rabbit@yesboss", require("../index.js")(subscriberAContainer));
+        subscriberBContainer.registerPlugin("service-rabbit", require("../index.js")(subscriberBContainer));
         subscriberBContainer.register("mainCom", class MainCom extends Component {
             start() { }
             *handleIncomingMessage(payload) { messageB.push(payload); }
         });
-        subscriberBContainer.start();
+        yield subscriberBContainer.start();
 
-        this.timeout(5000);
 
         service = yield subscriberAContainer.resolve("service");
         serviceSubRabbit = yield subscriberAContainer.resolve("serviceSubRabbit");
@@ -150,7 +151,7 @@ describe("Merapi Plugin Service: Subscriber", function () {
         describe("when subscribing event", function () {
             it("should distribute accross all subscribers using round robin method", async(function* () {
                 let trigger = yield publisherContainer.resolve("triggerIncomingMessageSubscriberTest");
-                
+
                 for (let i = 0; i < 5; i++) {
                     yield trigger(i);
                 }
@@ -164,7 +165,3 @@ describe("Merapi Plugin Service: Subscriber", function () {
     });
 
 });
-
-
-
-

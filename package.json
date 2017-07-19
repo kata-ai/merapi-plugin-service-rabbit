@@ -1,34 +1,34 @@
 {
-  "name": "@yesboss/merapi-plugin-service-rabbit",
-  "version": "0.1.14",
-  "description": "Provide RabbitMQ integration interface",
-  "main": "index.js",
-  "scripts": {
-    "test": "chmod +x ./test.sh; ./test.sh"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://bitbucket.org/yesboss/merapi-plugin-service-rabbit.git"
-  },
-  "keywords": [
-    "merapi",
-    "microservice",
-    "rabbitmq"
-  ],
-  "author": "Ikmal Syifai <ikmal@yesbossnow.com>",
-  "license": "ISC",
-  "homepage": "https://bitbucket.org/yesboss/merapi-plugin-service-rabbit#readme",
-  "dependencies": {
-    "@yesboss/merapi": "^0.13.2",
-    "@yesboss/merapi-plugin-service": "^0.2.3",
-    "amqplib": "^0.4.2",
-    "requestretry": "^1.12.0",
-    "then-sleep": "^1.0.1"
-  },
-  "devDependencies": {
-    "chai": "^3.5.0",
-    "istanbul": "^0.4.5",
-    "mocha": "^2.5.3",
-    "supertest": "^2.0.0"
-  }
+    "name": "merapi-plugin-service-rabbit",
+    "version": "0.2.0",
+    "description": "Provide RabbitMQ integration interface",
+    "main": "index.js",
+    "scripts": {
+        "test": "chmod +x ./test.sh; ./test.sh"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/kata-ai/merapi-plugin-service-rabbit.git"
+    },
+    "keywords": [
+        "merapi",
+        "microservice",
+        "rabbitmq"
+    ],
+    "author": "Ikmal Syifai <ikmal@kata.ai>",
+    "license": "ISC",
+    "homepage": "https://github.com/kata-ai/merapi-plugin-service-rabbit#readme",
+    "dependencies": {
+        "amqplib": "^0.4.2",
+        "merapi": "^0.16.0",
+        "merapi-plugin-service": "^0.3.3",
+        "requestretry": "^1.12.0",
+        "then-sleep": "^1.0.1"
+    },
+    "devDependencies": {
+        "chai": "^3.5.0",
+        "istanbul": "^0.4.5",
+        "mocha": "^2.5.3",
+        "supertest": "^2.0.0"
+    }
 }
