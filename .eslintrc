@@ -31,6 +31,9 @@
         ],
         "strict": [
             "error"
+        ],
+        "require-yield": [
+            0
         ]
     },
     "globals": {
