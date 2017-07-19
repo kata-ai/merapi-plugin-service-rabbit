@@ -11,8 +11,8 @@ module.exports = function () {
             container.alias("serviceSub", "serviceSubRabbit");
 
             container.register("servicePubQueueRabbit", require("./lib/service_pub_queue_rabbit"));
-            container.register("serviceSuQueuebRabbit", require("./lib/service_sub_queue_rabbit"));
-            container.alias("servicePubQueue", "servicePubQueueRabbit");
+            container.register("serviceSubQueueRabbit", require("./lib/service_sub_queue_rabbit"));
+            // container.alias("servicePubQueue", "servicePubQueueRabbit");
 
             container.register("amqp", require("./lib/service_amqp"));
         },
