@@ -6,9 +6,8 @@ const request = require("supertest");
 const amqplib = require("amqplib");
 const sleep = require("then-sleep");
 
-const merapi = require("@yesboss/merapi");
-const component = require("@yesboss/merapi/component");
-const async = require("@yesboss/merapi/async");
+const merapi = require("merapi");
+const { Component, async } = require("merapi");
 
 /* eslint-env mocha */
 
@@ -26,7 +25,7 @@ describe("Merapi Plugin Service: Publisher", function () {
             main: "mainCom",
             secret: "abc123",
             plugins: [
-                "service@yesboss"
+                "service"
             ],
             service: {
                 "rabbit": {
@@ -46,9 +45,9 @@ describe("Merapi Plugin Service: Publisher", function () {
             config: publisherConfig
         });
 
-        publisherAContainer.registerPlugin("service-rabbit@yesboss", require("../index.js")(publisherAContainer));
-        publisherAContainer.register("mainCom", class MainCom extends component { start() { } });
-        publisherAContainer.start();
+        publisherAContainer.registerPlugin("service-rabbit", require("../index.js")(publisherAContainer));
+        publisherAContainer.register("mainCom", class MainCom extends Component { start() { } });
+        yield publisherAContainer.start();
 
         publisherConfig.service.port = 5002;
         publisherBContainer = merapi({
@@ -56,11 +55,9 @@ describe("Merapi Plugin Service: Publisher", function () {
             config: publisherConfig
         });
 
-        publisherBContainer.registerPlugin("service-rabbit@yesboss", require("../index.js")(publisherBContainer));
-        publisherBContainer.register("mainCom", class MainCom extends component { start() { } });
-        publisherBContainer.start();
-
-        this.timeout(5000);
+        publisherBContainer.registerPlugin("service-rabbit", require("../index.js")(publisherBContainer));
+        publisherBContainer.register("mainCom", class MainCom extends Component { start() { } });
+        yield publisherBContainer.start();
 
         service = yield publisherAContainer.resolve("service");
         connection = yield amqplib.connect("amqp://localhost");
@@ -138,14 +135,10 @@ describe("Merapi Plugin Service: Publisher", function () {
                     channel.ack(msg);
                 });
 
-                yield sleep(50);
+                yield sleep(500);
                 expect(message).to.deep.equal(["0", "1", "2", "3", "4"]);
             }));
         });
     });
 
 });
-
-
-
-
