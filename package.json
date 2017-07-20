@@ -1,6 +1,6 @@
 {
     "name": "merapi-plugin-service-rabbit",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "description": "Provide RabbitMQ integration interface",
     "main": "index.js",
     "scripts": {
