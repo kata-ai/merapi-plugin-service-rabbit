@@ -125,7 +125,7 @@ describe("Merapi Plugin Service: Publisher", function () {
 
                 for (let i = 0; i < 5; i++) {
                     if (i % 2 == 0) yield triggerA(i); else yield triggerB(i);
-                    yield sleep(50);
+                    yield sleep(150);
                 }
 
                 let message = [];
@@ -135,7 +135,7 @@ describe("Merapi Plugin Service: Publisher", function () {
                     channel.ack(msg);
                 });
 
-                yield sleep(500);
+                yield sleep(1000);
                 expect(message).to.deep.equal(["0", "1", "2", "3", "4"]);
             }));
         });
