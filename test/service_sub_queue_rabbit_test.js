@@ -11,10 +11,9 @@ const { async, Component } = require("merapi");
 
 /* eslint-env mocha */
 
-describe("Merapi Plugin Service: Subscriber", function () {
+describe("Merapi Plugin Service: Queue Subscriber", function () {
     let publisherContainer, subscriberAContainer, subscriberBContainer;
     let service = {};
-    let serviceSubRabbit = {};
     let connection = {};
     let channel = {};
     let messageA = [];
@@ -36,10 +35,14 @@ describe("Merapi Plugin Service: Subscriber", function () {
                     "host": "localhost",
                     "port": 5672
                 },
-                "publish": {
-                    "incoming_message_subscriber_test": "triggerIncomingMessageSubscriberTest"
+                "queue": {
+                    "publish": {
+                        "subscriber": {
+                            "sub_queue_publisher_test": "inQueuePublisherTest"
+                        }
+                    }
                 },
-                "port": 5021
+                "port": 5025
             }
         };
 
@@ -54,17 +57,12 @@ describe("Merapi Plugin Service: Subscriber", function () {
                 "rabbit": {
                     "host": "localhost",
                     "port": 5672,
-                    "consumerPrefetch": 1,
-                    "maxAttemtps": 5,
-                    "retryDelay": 50
+                    "prefetch": 1
                 },
-                "subscribe": {
-                    "yb-core": {
-                        "incoming_message_subscriber_test": "mainCom.handleIncomingMessage"
+                "queue": {
+                    "subscribe": {
+                        "sub_queue_publisher_test": "mainCom.handleIncomingMessage"
                     }
-                },
-                "registry": {
-                    "yb-core": "http://localhost:5021"
                 }
             }
         };
@@ -80,7 +78,7 @@ describe("Merapi Plugin Service: Subscriber", function () {
         });
         yield publisherContainer.start();
 
-        subscriberConfig.service.port = 5011;
+        subscriberConfig.service.port = 5013;
         subscriberAContainer = merapi({
             basepath: __dirname,
             config: subscriberConfig
@@ -93,7 +91,7 @@ describe("Merapi Plugin Service: Subscriber", function () {
         });
         yield subscriberAContainer.start();
 
-        subscriberConfig.service.port = 5012;
+        subscriberConfig.service.port = 5014;
         subscriberBContainer = merapi({
             basepath: __dirname,
             config: subscriberConfig
@@ -108,7 +106,6 @@ describe("Merapi Plugin Service: Subscriber", function () {
 
 
         service = yield subscriberAContainer.resolve("service");
-        serviceSubRabbit = yield subscriberAContainer.resolve("serviceSubRabbit");
         connection = yield amqplib.connect("amqp://localhost");
         channel = yield connection.createChannel();
 
@@ -122,11 +119,11 @@ describe("Merapi Plugin Service: Subscriber", function () {
 
     describe("Subscriber service", function () {
         describe("getServiceInfo", function () {
-            it("should list pub-rabbit", async(function* () {
+            it("should list sub-queue-rabbit", async(function* () {
                 yield request(service._express)
                     .get("/info")
                     .expect(function (res) {
-                        expect(Object.keys(res.body.modules).some(key => key == "pub-rabbit")).to.be.true;
+                        expect(Object.keys(res.body.modules).some(key => key == "sub-queue-rabbit")).to.be.true;
                     });
             }));
         });
@@ -139,18 +136,14 @@ describe("Merapi Plugin Service: Subscriber", function () {
 
             it("should create a queue", function () {
                 expect(async(function* () {
-                    yield channel.assertQueue("publisher.subscriber.incoming_message_subscriber_test");
+                    yield channel.assertQueue("queue.subscriber.sub_queue_publisher_test");
                 })).to.not.throw(Error);
-            });
-
-            it("should save queue list", function () {
-                expect(serviceSubRabbit._queues).to.include("publisher.subscriber.incoming_message_subscriber_test");
             });
         });
 
         describe("when subscribing event", function () {
             it("should distribute accross all subscribers using round robin method", async(function* () {
-                let trigger = yield publisherContainer.resolve("triggerIncomingMessageSubscriberTest");
+                let trigger = yield publisherContainer.resolve("inQueuePublisherTest");
 
                 for (let i = 0; i < 5; i++) {
                     yield trigger(i);
