@@ -21,7 +21,7 @@
     "dependencies": {
         "amqplib": "^0.4.2",
         "merapi": "^0.16.0",
-        "merapi-plugin-service": "^0.3.3",
+        "merapi-plugin-service": "^0.3.5",
         "requestretry": "^1.12.0",
         "then-sleep": "^1.0.1"
     },
