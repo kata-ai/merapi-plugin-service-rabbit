@@ -1,8 +1,9 @@
-# Merapi Plugin: RabbitMQ
+# Merapi Plugin: Service RabbitMQ
 
 ## Introduction
 
 This plugin use RabbitMQ for messaging. When subscribing to an event, it will first check if the publisher is RabbitMQ compatible. If so, it will subscribe to that event's queue, otherwise it will create hook that will be called by the publisher.
+
 
 ## Installation
 
@@ -13,68 +14,99 @@ Add plugin to dependency list in `package.json`
     "name": "application",
     "version": "1.0.0",
     "dependencies": {
-        "merapi-plugin-service-rabbit": "^0.1.0"
+        "merapi-plugin-service-rabbit": "^0.2.0"
     }
 }
 ```
 
 ## Configuration
 
-### PUBLISHER
+### Service Publisher
 
 ```
-{
-    name: "publisher",
-    version: "1.0.0",
-    plugins: [
-        "service",
-        "service-rabbit"
-    ],
-    service: {
-        "rabbit": {
-            "host": "localhost",
-            "port": 5672
-        },
-        "publish": {
-            "incoming_message": "triggerIncomingMessage",
-            "outgoing_message": "triggerOutgoingMessage"
-        }
-    }
-}
+name: publisher
+version: 1.0.0
+plugins:
+    - service
+    - service-rabbit
+service:
+    rabbit:
+        host: localhost
+        port: 5672
+    publish:
+        converse_event:
+            broker:
+                - kafka
+                - rabbit
+            component: triggerConverseEvent
 ```
 
-### SUBSCRIBER
+### Service Subscriber
 
 ```
-{
-    name: "subscriber",
-    version: "1.0.0",
-    plugins: [
-        "service",
-        "service-rabbit"
-    ],
-    service: {
-        "rabbit": {
-            "host": "localhost",
-            "port": 5672,
-            "consumer_prefetch": 1
-        },
-        "subscribe": {
-            "yb-core": {
-                "incoming_message": "mainCom.handleIncomingMessage",
-                "outgoing_message": "mainCom.handleOutgoingMessage"
-            }
-        },
-        "registry": {
-            "yb-core": "http://localhost:5000"
-        }
-    }
-}
+name: publisher
+version: 1.0.0
+plugins:
+    - service
+    - service-rabbit
+service:
+    rabbit:
+        host: localhost
+        port: 5672
+    subscribe:
+        kanal-platform:
+            incoming_message:
+                broker: rabbit
+                method: conversationManager.handleIncomingMessage
+    registry:
+        kanal-platform: http://localhost:5000
 ```
 
-`consumer_prefetch` - *default to 5*
+`consumerPrefetch` - *default to 5*
+The maximum number of messages sent to the consumer that can be awaiting acknowledgement; once there are `<consumerPrefetch>` messages outstanding, the server will not send more messages to this consumer until one or more have been acknowledged.
 
-The maximum number of messages sent to the consumer that can be awaiting acknowledgement; once there are `<consumer_prefetch>` messages outstanding, the server will not send more messages to this consumer until one or more have been acknowledged.
+`maxAttempts` - *default to 5*
+The maximum number of request attempts.
+
+`retryDelay` - *default to 5000*
+The delay time between retries in milliseconds.
+
+### Queue Publisher
+
+```
+name: publisher
+version: 1.0.0
+plugins:
+    - service
+    - service-rabbit
+service:
+    rabbit:
+        host: localhost
+        port: 5672
+    queue:
+        publish:
+            kanal-platform:
+                outgoing_message: publishOutgoingMessage
+    registry:
+        kanal-platform: http://localhost:5000
+```
+
+### Queue Subscriber
+
+```
+name: publisher
+version: 1.0.0
+plugins:
+    - service
+    - service-rabbit
+service:
+    rabbit:
+        host: localhost
+        port: 5672
+    queue:
+        subscribe:
+            dummy_event: dummyManager.handleDummyEvent
+```
 
 ## Service Info
 
@@ -127,7 +159,7 @@ Result:
 
 ## Usage
 
-### MERAPI COMPONENT
+### Merapi Component
 
 * PUBLISH
 
