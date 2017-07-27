@@ -34,11 +34,7 @@ service:
         host: localhost
         port: 5672
     publish:
-        converse_event:
-            broker:
-                - kafka
-                - rabbit
-            component: triggerConverseEvent
+        converse_event: triggerConverseEvent
 ```
 
 ### Service Subscriber
@@ -55,9 +51,7 @@ service:
         port: 5672
     subscribe:
         kanal-platform:
-            incoming_message:
-                broker: rabbit
-                method: conversationManager.handleIncomingMessage
+            incoming_message: conversationManager.handleIncomingMessage
     registry:
         kanal-platform: http://localhost:5000
 ```
