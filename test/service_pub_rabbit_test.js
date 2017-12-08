@@ -94,8 +94,8 @@ describe("Merapi Plugin Service: Publisher", function () {
 
             it("should create exchanges", function () {
                 expect(async(function* () {
-                    yield channel.checkExchange("publisher.incoming_message_publisher_test");
-                    yield channel.checkExchange("publisher.outgoing_message_publisher_test");
+                    yield channel.checkExchange("default.publisher.incoming_message_publisher_test");
+                    yield channel.checkExchange("default.publisher.outgoing_message_publisher_test");
                 })).to.not.throw(Error);
             });
         });
@@ -104,10 +104,10 @@ describe("Merapi Plugin Service: Publisher", function () {
             let q, exchangeName, payload, triggerA, triggerB;
 
             it("should publish event to exchange", async(function* () {
-                q = yield channel.assertQueue("queue1");
+                q = yield channel.assertQueue("default.queue1");
                 payload = { key: "value" };
                 triggerA = yield publisherAContainer.resolve("triggerIncomingMessagePublisherTest");
-                exchangeName = "publisher.incoming_message_publisher_test";
+                exchangeName = "default.publisher.incoming_message_publisher_test";
                 yield triggerA(payload);
 
                 yield channel.bindQueue(q.queue, exchangeName, "");
@@ -118,10 +118,10 @@ describe("Merapi Plugin Service: Publisher", function () {
             }));
 
             it("should publish events to the same exchange for same service", async(function* () {
-                q = yield channel.assertQueue("queue2");
+                q = yield channel.assertQueue("default.queue2");
                 triggerA = yield publisherAContainer.resolve("triggerOutgoingMessagePublisherTest");
                 triggerB = yield publisherBContainer.resolve("triggerOutgoingMessagePublisherTest");
-                exchangeName = "publisher.outgoing_message_publisher_test";
+                exchangeName = "default.publisher.outgoing_message_publisher_test";
 
                 for (let i = 0; i < 5; i++) {
                     if (i % 2 == 0) yield triggerA(i); else yield triggerB(i);

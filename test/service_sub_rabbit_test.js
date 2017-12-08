@@ -139,12 +139,12 @@ describe("Merapi Plugin Service: Subscriber", function () {
 
             it("should create a queue", function () {
                 expect(async(function* () {
-                    yield channel.assertQueue("publisher.subscriber.incoming_message_subscriber_test");
+                    yield channel.assertQueue("default.publisher.subscriber.incoming_message_subscriber_test");
                 })).to.not.throw(Error);
             });
 
             it("should save queue list", function () {
-                expect(serviceSubRabbit._queues).to.include("publisher.subscriber.incoming_message_subscriber_test");
+                expect(serviceSubRabbit._queues).to.include("default.publisher.subscriber.incoming_message_subscriber_test");
             });
         });
 

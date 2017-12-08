@@ -136,7 +136,7 @@ describe("Merapi Plugin Service: Queue Subscriber", function () {
 
             it("should create a queue", function () {
                 expect(async(function* () {
-                    yield channel.assertQueue("queue.subscriber.sub_queue_publisher_test");
+                    yield channel.assertQueue("default.queue.subscriber.sub_queue_publisher_test");
                 })).to.not.throw(Error);
             });
         });
