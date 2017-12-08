@@ -21,34 +21,56 @@ Add plugin to dependency list in `package.json`
 
 ## Configuration
 
-### Service Publisher
+### Merapi Application
 
 ```
-name: publisher
-version: 1.0.0
+name: application
+version: 0.4.0
 plugins:
     - service
     - service-rabbit
+```
+
+### RabbitMQ
+
+```
 service:
     rabbit:
         host: localhost
         port: 5672
+        prefetch: 5
+        maxAttempts: 5
+        retryDelay: 5
+        namespace: default
+```
+`prefetch` - *default to 5*
+
+The maximum number of messages sent to the consumer that can be awaiting acknowledgement; once there are `prefetch` messages outstanding, the server will not send more messages to this consumer until one or more have been acknowledged.
+
+`maxAttempts` - *default to 5*
+
+The maximum number of attempts to get target's info.
+
+`retryDelay` - *default to 5000*
+
+The delay time between attempts in milliseconds.
+
+`namespace` - *default to default*
+
+Kubernetes namespace where the application resides.
+
+### Topic Publisher
+
+```
+service:
     publish:
         converse_event: triggerConverseEvent
 ```
 
-### Service Subscriber
+### Topic Subscriber
 
 ```
-name: publisher
-version: 1.0.0
-plugins:
-    - service
-    - service-rabbit
 service:
-    rabbit:
-        host: localhost
-        port: 5672
     subscribe:
         kanal-platform:
             incoming_message: conversationManager.handleIncomingMessage
@@ -56,27 +78,10 @@ service:
         kanal-platform: http://localhost:5000
 ```
 
-`consumerPrefetch` - *default to 5*
-The maximum number of messages sent to the consumer that can be awaiting acknowledgement; once there are `<consumerPrefetch>` messages outstanding, the server will not send more messages to this consumer until one or more have been acknowledged.
-
-`maxAttempts` - *default to 5*
-The maximum number of request attempts.
-
-`retryDelay` - *default to 5000*
-The delay time between retries in milliseconds.
-
 ### Queue Publisher
 
 ```
-name: publisher
-version: 1.0.0
-plugins:
-    - service
-    - service-rabbit
 service:
-    rabbit:
-        host: localhost
-        port: 5672
     queue:
         publish:
             kanal-platform:
@@ -88,15 +93,7 @@ service:
 ### Queue Subscriber
 
 ```
-name: publisher
-version: 1.0.0
-plugins:
-    - service
-    - service-rabbit
 service:
-    rabbit:
-        host: localhost
-        port: 5672
     queue:
         subscribe:
             dummy_event: dummyManager.handleDummyEvent
@@ -180,13 +177,13 @@ class MainCom extends component {
 }
 ```
 
-### non merapi component
+### Non-merapi component
 
 * PUBLISH
-    * Create an exchange with this format `<publisher>.<event>`
+    * Create an exchange with this format `<namespace>.<publisher>.<event>`
     * Publish messages to that exchange
 
 * SUBSCRIBE
     * Create a RabbitMQ queue
-    * Bind the queue to an exchange (exchange's name: `<publisher>.<event>`)
+    * Bind the queue to an exchange (exchange's name: `<namespace>.<publisher>.<event>`)
     * Consume its messages
