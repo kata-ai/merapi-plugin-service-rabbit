@@ -3,3 +3,4 @@ config.json
 .idea
 coverage
 .vscode
+yarn.lock
