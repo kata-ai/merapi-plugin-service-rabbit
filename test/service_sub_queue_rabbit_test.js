@@ -81,7 +81,7 @@ describe("Merapi Plugin Service: Queue Subscriber", function () {
         });
         yield publisherContainer.start();
 
-        subscriberConfig.service.port = 5210 + currentIteration;
+        subscriberConfig.service.port = 5210;
         subscriberAContainer = merapi({
             basepath: __dirname,
             config: subscriberConfig
@@ -94,7 +94,7 @@ describe("Merapi Plugin Service: Queue Subscriber", function () {
         });
         yield subscriberAContainer.start();
 
-        subscriberConfig.service.port = 5310 + currentIteration;
+        subscriberConfig.service.port = 5310;
         subscriberBContainer = merapi({
             basepath: __dirname,
             config: subscriberConfig
@@ -115,11 +115,14 @@ describe("Merapi Plugin Service: Queue Subscriber", function () {
         yield sleep(100);
     }));
 
-    afterEach(function () {
-        subscriberAContainer.stop();
-        subscriberBContainer.stop();
+    afterEach(async(function* () {
+        yield subscriberAContainer.stop();
+        yield subscriberBContainer.stop();
+        yield channel.close();
+        yield connection.close();
+
         currentIteration++;
-    });
+    }));
 
     describe("Subscriber service", function () {
         describe("getServiceInfo", function () {
