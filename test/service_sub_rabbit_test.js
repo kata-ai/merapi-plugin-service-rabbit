@@ -24,9 +24,9 @@ describe("Merapi Plugin Service: Subscriber", function () {
     let messageB = [];
     let currentIteration = 1;
 
-    beforeEach(async(function* () {
+    this.timeout(5000);
 
-        this.timeout(5000);
+    beforeEach(async(function* () {
 
         let publisherConfig = {
             name: "publisher",
