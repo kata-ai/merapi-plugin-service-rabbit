@@ -18,8 +18,9 @@ describe("Merapi Plugin Service: Queue Subscriber", function () {
     let channel = {};
     let messageA = [];
     let messageB = [];
+    let currentIteration = 1;
 
-    before(async(function* () {
+    beforeEach(async(function* () {
 
         this.timeout(5000);
 
@@ -33,7 +34,8 @@ describe("Merapi Plugin Service: Queue Subscriber", function () {
             service: {
                 "rabbit": {
                     "host": "localhost",
-                    "port": 5672
+                    "port": 5672,
+                    "expireTime": 1000 * 30,
                 },
                 "queue": {
                     "publish": {
@@ -42,7 +44,7 @@ describe("Merapi Plugin Service: Queue Subscriber", function () {
                         }
                     }
                 },
-                "port": 5025
+                "port": 5130 + currentIteration
             }
         };
 
@@ -57,7 +59,8 @@ describe("Merapi Plugin Service: Queue Subscriber", function () {
                 "rabbit": {
                     "host": "localhost",
                     "port": 5672,
-                    "prefetch": 1
+                    "prefetch": 1,
+                    "expireTime": 1000 * 30,
                 },
                 "queue": {
                     "subscribe": {
@@ -78,7 +81,7 @@ describe("Merapi Plugin Service: Queue Subscriber", function () {
         });
         yield publisherContainer.start();
 
-        subscriberConfig.service.port = 5013;
+        subscriberConfig.service.port = 5210 + currentIteration;
         subscriberAContainer = merapi({
             basepath: __dirname,
             config: subscriberConfig
@@ -91,7 +94,7 @@ describe("Merapi Plugin Service: Queue Subscriber", function () {
         });
         yield subscriberAContainer.start();
 
-        subscriberConfig.service.port = 5014;
+        subscriberConfig.service.port = 5310 + currentIteration;
         subscriberBContainer = merapi({
             basepath: __dirname,
             config: subscriberConfig
@@ -112,9 +115,10 @@ describe("Merapi Plugin Service: Queue Subscriber", function () {
         yield sleep(100);
     }));
 
-    after(function () {
+    afterEach(function () {
         subscriberAContainer.stop();
         subscriberBContainer.stop();
+        currentIteration++;
     });
 
     describe("Subscriber service", function () {
@@ -136,7 +140,10 @@ describe("Merapi Plugin Service: Queue Subscriber", function () {
 
             it("should create a queue", function () {
                 expect(async(function* () {
-                    yield channel.assertQueue("default.queue.subscriber.sub_queue_publisher_test");
+                    yield channel.assertQueue(
+                        "default.queue.subscriber.sub_queue_publisher_test",
+                        { durable: true, expires: 1000 * 30 }
+                    );
                 })).to.not.throw(Error);
             });
         });
@@ -146,6 +153,7 @@ describe("Merapi Plugin Service: Queue Subscriber", function () {
                 let trigger = yield publisherContainer.resolve("inQueuePublisherTest");
 
                 for (let i = 0; i < 5; i++) {
+                    yield sleep(100);
                     yield trigger(i);
                 }
 
