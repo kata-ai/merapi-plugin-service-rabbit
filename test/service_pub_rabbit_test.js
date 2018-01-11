@@ -5,9 +5,12 @@ const expect = chai.expect;
 const request = require("supertest");
 const amqplib = require("amqplib");
 const sleep = require("then-sleep");
+const chaiAsPromised = require("chai-as-promised");
 
 const merapi = require("merapi");
 const { Component, async } = require("merapi");
+
+chai.use(chaiAsPromised);
 
 /* eslint-env mocha */
 
@@ -16,8 +19,12 @@ describe("Merapi Plugin Service: Publisher", function () {
     let service = {};
     let connection = {};
     let channel = {};
+    let currentIteration = 1;
+    const expires = 1000 * 30;
 
-    before(async(function* () {
+    this.timeout(5000);
+
+    beforeEach(async(function* () {
 
         let publisherConfig = {
             name: "publisher",
@@ -30,7 +37,7 @@ describe("Merapi Plugin Service: Publisher", function () {
             service: {
                 "rabbit": {
                     "host": "localhost",
-                    "port": 5672
+                    "port": 5672,
                 },
                 "publish": {
                     "incoming_message_publisher_test": "triggerIncomingMessagePublisherTest",
@@ -39,7 +46,7 @@ describe("Merapi Plugin Service: Publisher", function () {
             }
         };
 
-        publisherConfig.service.port = 5001;
+        publisherConfig.service.port = 5700 + currentIteration;
         publisherAContainer = merapi({
             basepath: __dirname,
             config: publisherConfig
@@ -49,7 +56,7 @@ describe("Merapi Plugin Service: Publisher", function () {
         publisherAContainer.register("mainCom", class MainCom extends Component { start() { } });
         yield publisherAContainer.start();
 
-        publisherConfig.service.port = 5002;
+        publisherConfig.service.port = 5800 + currentIteration;
         publisherBContainer = merapi({
             basepath: __dirname,
             config: publisherConfig
@@ -62,11 +69,18 @@ describe("Merapi Plugin Service: Publisher", function () {
         service = yield publisherAContainer.resolve("service");
         connection = yield amqplib.connect("amqp://localhost");
         channel = yield connection.createChannel();
+
+        yield sleep(100);
     }));
 
-    after(function () {
-        publisherAContainer.stop();
-    });
+    afterEach(async(function* () {
+        yield publisherAContainer.stop();
+        yield publisherBContainer.stop();
+        yield channel.close();
+        yield connection.close();
+
+        currentIteration++;
+    }));
 
     describe("Publisher service", function () {
 
@@ -104,7 +118,7 @@ describe("Merapi Plugin Service: Publisher", function () {
             let q, exchangeName, payload, triggerA, triggerB;
 
             it("should publish event to exchange", async(function* () {
-                q = yield channel.assertQueue("default.queue1");
+                q = yield channel.assertQueue("default.queue1", { expires });
                 payload = { key: "value" };
                 triggerA = yield publisherAContainer.resolve("triggerIncomingMessagePublisherTest");
                 exchangeName = "default.publisher.incoming_message_publisher_test";
@@ -118,25 +132,32 @@ describe("Merapi Plugin Service: Publisher", function () {
             }));
 
             it("should publish events to the same exchange for same service", async(function* () {
-                q = yield channel.assertQueue("default.queue2");
+                let message = [];
+
+                q = yield channel.assertQueue("default.queue2", { expires });
                 triggerA = yield publisherAContainer.resolve("triggerOutgoingMessagePublisherTest");
                 triggerB = yield publisherBContainer.resolve("triggerOutgoingMessagePublisherTest");
                 exchangeName = "default.publisher.outgoing_message_publisher_test";
 
                 for (let i = 0; i < 5; i++) {
-                    if (i % 2 == 0) yield triggerA(i); else yield triggerB(i);
                     yield sleep(150);
+                    if (i % 2 == 0) {
+                        yield triggerA(i);
+                    }  else {
+                        yield triggerB(i);
+                    }
                 }
 
-                let message = [];
                 yield channel.bindQueue(q.queue, exchangeName, "");
-                channel.consume(q.queue, function (msg) {
-                    message.push(msg.content.toString());
-                    channel.ack(msg);
-                });
 
-                yield sleep(1000);
-                expect(message).to.deep.equal(["0", "1", "2", "3", "4"]);
+                channel
+                    .consume(q.queue, function (msg) {
+                        message.push(msg.content.toString());
+                        channel.ack(msg);
+                    })
+                    .then(function () {
+                        expect(message).to.deep.equal(["0", "1", "2", "3", "4"]);
+                    });
             }));
         });
     });
