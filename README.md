@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/kata-ai/merapi-plugin-service-rabbit.svg?branch=master)](https://travis-ci.org/kata-ai/merapi-plugin-service-rabbit)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/3bb4ada1e0aa452c92d2878dc4cfad33)](https://www.codacy.com/app/kata-ai/merapi-plugin-service-rabbit?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=kata-ai/merapi-plugin-service-rabbit&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://api.codacy.com/project/badge/Coverage/3bb4ada1e0aa452c92d2878dc4cfad33)](https://www.codacy.com/app/kata-ai/merapi-plugin-service-rabbit?utm_source=github.com&utm_medium=referral&utm_content=kata-ai/merapi-plugin-service-rabbit&utm_campaign=Badge_Coverage)
 
 ## Introduction
 
