@@ -17,6 +17,11 @@
     "rabbitmq"
   ],
   "author": "Ikmal Syifai <ikmal@kata.ai>",
+  "contributors": [
+      "Yoga Aliarham <aliarham@kata.ai>",
+      "Ricky Anders <ricky@kata.ai>",
+      "Reyhan Sofian <reyhan@kata.ai>"
+  ],
   "license": "ISC",
   "homepage": "https://github.com/kata-ai/merapi-plugin-service-rabbit#readme",
   "dependencies": {
