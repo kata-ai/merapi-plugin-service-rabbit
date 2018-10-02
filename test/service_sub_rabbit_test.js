@@ -5,12 +5,9 @@ const expect = chai.expect;
 const request = require("supertest");
 const sleep = require("then-sleep");
 const amqplib = require("amqplib");
-const chaiAsPromised = require("chai-as-promised");
 
 const merapi = require("merapi");
 const { async, Component } = require("merapi");
-
-chai.use(chaiAsPromised);
 
 /* eslint-env mocha */
 
@@ -22,11 +19,10 @@ describe("Merapi Plugin Service: Subscriber", function () {
     let channel = {};
     let messageA = [];
     let messageB = [];
-    let currentIteration = 1;
 
-    this.timeout(5000);
+    before(async(function* () {
 
-    beforeEach(async(function* () {
+        this.timeout(5000);
 
         let publisherConfig = {
             name: "publisher",
@@ -38,13 +34,12 @@ describe("Merapi Plugin Service: Subscriber", function () {
             service: {
                 "rabbit": {
                     "host": "localhost",
-                    "port": 5672,
-                    "expireTime": 1000 * 30,
+                    "port": 5672
                 },
                 "publish": {
                     "incoming_message_subscriber_test": "triggerIncomingMessageSubscriberTest"
                 },
-                "port": 5030 + currentIteration
+                "port": 5021
             }
         };
 
@@ -61,8 +56,7 @@ describe("Merapi Plugin Service: Subscriber", function () {
                     "port": 5672,
                     "consumerPrefetch": 1,
                     "maxAttemtps": 5,
-                    "retryDelay": 50,
-                    "expireTime": 1000 * 30,
+                    "retryDelay": 50
                 },
                 "subscribe": {
                     "yb-core": {
@@ -70,7 +64,7 @@ describe("Merapi Plugin Service: Subscriber", function () {
                     }
                 },
                 "registry": {
-                    "yb-core": `http://localhost:${5030 + currentIteration}`
+                    "yb-core": "http://localhost:5021"
                 }
             }
         };
@@ -86,7 +80,7 @@ describe("Merapi Plugin Service: Subscriber", function () {
         });
         yield publisherContainer.start();
 
-        subscriberConfig.service.port = 5010;
+        subscriberConfig.service.port = 5011;
         subscriberAContainer = merapi({
             basepath: __dirname,
             config: subscriberConfig
@@ -99,7 +93,7 @@ describe("Merapi Plugin Service: Subscriber", function () {
         });
         yield subscriberAContainer.start();
 
-        subscriberConfig.service.port = 5011;
+        subscriberConfig.service.port = 5012;
         subscriberBContainer = merapi({
             basepath: __dirname,
             config: subscriberConfig
@@ -121,14 +115,10 @@ describe("Merapi Plugin Service: Subscriber", function () {
         yield sleep(100);
     }));
 
-    afterEach(async(function* () {
-        yield subscriberAContainer.stop();
-        yield subscriberBContainer.stop();
-        yield channel.close();
-        yield connection.close();
-
-        currentIteration++;
-    }));
+    after(function () {
+        subscriberAContainer.stop();
+        subscriberBContainer.stop();
+    });
 
     describe("Subscriber service", function () {
         describe("getServiceInfo", function () {
@@ -163,7 +153,6 @@ describe("Merapi Plugin Service: Subscriber", function () {
                 let trigger = yield publisherContainer.resolve("triggerIncomingMessageSubscriberTest");
 
                 for (let i = 0; i < 5; i++) {
-                    yield sleep(100);
                     yield trigger(i);
                 }
 
@@ -172,6 +161,7 @@ describe("Merapi Plugin Service: Subscriber", function () {
                 expect(messageB).to.deep.equal([1, 3]);
             }));
         });
+
     });
 
 });

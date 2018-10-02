@@ -16,11 +16,8 @@ describe("Merapi Plugin Service: Queue Publisher", function () {
     let service = {};
     let connection = {};
     let channel = {};
-    let currentIteration = 1;
-    const expireTime = 1000 * 30;
 
-    beforeEach(async(function* () {
-        this.timeout(5000);
+    before(async(function* () {
 
         let publisherConfig = {
             name: "publisher",
@@ -33,8 +30,7 @@ describe("Merapi Plugin Service: Queue Publisher", function () {
             service: {
                 "rabbit": {
                     "host": "localhost",
-                    "port": 5672,
-                    "expireTime": expireTime,
+                    "port": 5672
                 },
                 "queue": {
                     "publish": {
@@ -47,7 +43,7 @@ describe("Merapi Plugin Service: Queue Publisher", function () {
             }
         };
 
-        publisherConfig.service.port = 5300 + currentIteration;
+        publisherConfig.service.port = 5003;
         publisherAContainer = merapi({
             basepath: __dirname,
             config: publisherConfig
@@ -57,7 +53,7 @@ describe("Merapi Plugin Service: Queue Publisher", function () {
         publisherAContainer.register("mainCom", class MainCom extends Component { start() { } });
         yield publisherAContainer.start();
 
-        publisherConfig.service.port = 5400 + currentIteration;
+        publisherConfig.service.port = 5004;
         publisherBContainer = merapi({
             basepath: __dirname,
             config: publisherConfig
@@ -70,17 +66,11 @@ describe("Merapi Plugin Service: Queue Publisher", function () {
         service = yield publisherAContainer.resolve("service");
         connection = yield amqplib.connect("amqp://localhost");
         channel = yield connection.createChannel();
-
-        yield sleep(100);
     }));
 
-    afterEach(async(function* () {
-        yield publisherAContainer.stop();
-        yield channel.close();
-        yield connection.close();
-
-        currentIteration++;
-    }));
+    after(function () {
+        publisherAContainer.stop();
+    });
 
     describe("Publisher Queue service", function () {
 
@@ -114,10 +104,7 @@ describe("Merapi Plugin Service: Queue Publisher", function () {
             let q, payload, triggerA, triggerB;
 
             it("should publish event to queue", async(function* () {
-                q = yield channel.assertQueue(
-                    "default.queue.subscriber.in_queue_publisher_test",
-                    { expires: expireTime }
-                );
+                q = yield channel.assertQueue("default.queue.subscriber.in_queue_publisher_test");
 
                 triggerA = yield publisherAContainer.resolve("inQueuePublisherTest");
                 payload = { key: "value" };
@@ -130,10 +117,7 @@ describe("Merapi Plugin Service: Queue Publisher", function () {
             }));
 
             it("should publish events to the same queue for same service", async(function* () {
-                q = yield channel.assertQueue(
-                    "default.queue.subscriber.out_queue_publisher_test",
-                    { expires: expireTime }
-                );
+                q = yield channel.assertQueue("default.queue.subscriber.out_queue_publisher_test");
 
                 triggerA = yield publisherAContainer.resolve("outQueuePublisherTest");
                 triggerB = yield publisherBContainer.resolve("outQueuePublisherTest");
