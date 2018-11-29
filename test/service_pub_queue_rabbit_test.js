@@ -142,7 +142,7 @@ describe("Merapi Plugin Service: Queue Publisher", function() {
                 payload = { key: "value" };
                 yield triggerA(payload);
 
-                channel.consume(q.queue, function(msg) {
+                yield channel.consume(q.queue, function(msg) {
                     expect(msg.content.toString()).to.equal(JSON.stringify(payload));
                     channel.ack(msg);
                 });

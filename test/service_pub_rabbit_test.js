@@ -128,18 +128,14 @@ describe("Merapi Plugin Service: Publisher", function() {
                 );
             });
 
-            it("should create exchanges", function() {
-                expect(
-                    async(function*() {
-                        yield channel.checkExchange(
-                            "default.publisher.incoming_message_publisher_test"
-                        );
-                        yield channel.checkExchange(
-                            "default.publisher.outgoing_message_publisher_test"
-                        );
-                    })
-                ).to.not.throw(Error);
-            });
+            it("should create exchanges", async(function*() {
+                yield channel.checkExchange(
+                    "default.publisher.incoming_message_publisher_test"
+                );
+                yield channel.checkExchange(
+                    "default.publisher.outgoing_message_publisher_test"
+                );
+            }));
         });
 
         describe("when publishing event", function() {
@@ -155,7 +151,7 @@ describe("Merapi Plugin Service: Publisher", function() {
                 yield triggerA(payload);
 
                 yield channel.bindQueue(q.queue, exchangeName, "");
-                channel.consume(q.queue, function(msg) {
+                yield channel.consume(q.queue, function(msg) {
                     expect(msg.content.toString()).to.equal(JSON.stringify(payload));
                     channel.ack(msg);
                 });
@@ -184,14 +180,12 @@ describe("Merapi Plugin Service: Publisher", function() {
 
                 yield channel.bindQueue(q.queue, exchangeName, "");
 
-                channel
-                    .consume(q.queue, function(msg) {
-                        message.push(msg.content.toString());
-                        channel.ack(msg);
-                    })
-                    .then(function() {
-                        expect(message).to.deep.equal(["0", "1", "2", "3", "4"]);
-                    });
+                channel.consume(q.queue, function(msg) {
+                    message.push(msg.content.toString());
+                    channel.ack(msg);
+                });
+                yield sleep(1);
+                expect(message).to.deep.equal(["0", "1", "2", "3", "4"]);
             }));
         });
     });
