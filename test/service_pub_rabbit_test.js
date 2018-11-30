@@ -180,11 +180,11 @@ describe("Merapi Plugin Service: Publisher", function() {
 
                 yield channel.bindQueue(q.queue, exchangeName, "");
 
-                yield channel.consume(q.queue, function(msg) {
+                channel.consume(q.queue, function(msg) {
                     message.push(msg.content.toString());
                     channel.ack(msg);
                 });
-                yield sleep(1000);
+                yield sleep(2000);
                 expect(message).to.deep.equal(["0", "1", "2", "3", "4"]);
             }));
         });
