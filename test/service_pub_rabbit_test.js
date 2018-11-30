@@ -184,8 +184,8 @@ describe("Merapi Plugin Service: Publisher", function() {
                     message.push(msg.content.toString());
                     channel.ack(msg);
                 });
-                // yield sleep(1000);
-                // expect(message).to.deep.equal(["0", "1", "2", "3", "4"]);
+                yield sleep(1000);
+                expect(message).to.deep.equal(["0", "1", "2", "3", "4"]);
             }));
         });
     });

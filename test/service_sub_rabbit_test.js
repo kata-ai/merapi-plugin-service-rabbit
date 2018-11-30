@@ -136,11 +136,13 @@ describe("Merapi Plugin Service: Subscriber", function() {
         yield sleep(100);
     }));
 
-    afterEach(function() {
-        subscriberAContainer.stop();
-        subscriberBContainer.stop();
+    afterEach(async(function*() {
+        yield subscriberAContainer.stop();
+        yield subscriberBContainer.stop();
+        yield channel.close();
+        yield connection.close();
         currentIteration++;
-    });
+    }));
 
     describe("Subscriber service", function() {
         describe("getServiceInfo", function() {
@@ -165,15 +167,11 @@ describe("Merapi Plugin Service: Subscriber", function() {
                 ).to.not.be.null;
             }));
 
-            it("should create a queue", function() {
-                expect(
-                    async(function*() {
-                        yield channel.assertQueue(
-                            "default.publisher.subscriber.incoming_message_subscriber_test"
-                        );
-                    })
-                ).to.not.throw(Error);
-            });
+            it("should create a queue", async(function*() {
+                yield channel.assertQueue(
+                    "default.publisher.subscriber.incoming_message_subscriber_test"
+                );
+            }));
 
             it("should save queue list", function() {
                 expect(serviceSubRabbit._queues).to.include(
