@@ -172,6 +172,7 @@ describe("Merapi Plugin Service: Queue Subscriber", function() {
 
         describe("when subscribing event", function() {
             it("should distribute accross all subscribers using round robin method", async(function*() {
+                this.timeout(5000);
                 let trigger = yield publisherContainer.resolve("inQueuePublisherTest");
 
                 for (let i = 0; i < 5; i++) {
@@ -179,7 +180,7 @@ describe("Merapi Plugin Service: Queue Subscriber", function() {
                     yield trigger(i);
                 }
 
-                yield sleep(5000);
+                yield sleep(3000);
                 expect(messageA).to.deep.equal([0, 2, 4]);
                 expect(messageB).to.deep.equal([1, 3]);
             }));

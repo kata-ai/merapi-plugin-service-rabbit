@@ -149,6 +149,7 @@ describe("Merapi Plugin Service: Queue Publisher", function() {
             }));
 
             it("should publish events to the same queue for same service", async(function*() {
+                this.timeout(5000);
                 q = yield channel.assertQueue(
                     "default.queue.subscriber.out_queue_publisher_test"
                 );
@@ -168,7 +169,7 @@ describe("Merapi Plugin Service: Queue Publisher", function() {
                     channel.ack(msg);
                 });
 
-                yield sleep(5000);
+                yield sleep(3000);
                 expect(message).to.deep.equal(["0", "1", "2", "3", "4"]);
             }));
         });

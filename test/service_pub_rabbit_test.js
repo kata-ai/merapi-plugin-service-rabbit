@@ -160,7 +160,8 @@ describe("Merapi Plugin Service: Publisher", function() {
             // TODO
             // skipped, since rabbit in travis is kinda slow
             // this always returns empty string, tried in my local computer, this is always works
-            it.skip("should publish events to the same exchange for same service", async(function*() {
+            it("should publish events to the same exchange for same service", async(function*() {
+                this.timeout(5000);
                 let message = [];
 
                 q = yield channel.assertQueue("default.queue2");
@@ -187,7 +188,7 @@ describe("Merapi Plugin Service: Publisher", function() {
                     message.push(msg.content.toString());
                     channel.ack(msg);
                 });
-                yield sleep(5000);
+                yield sleep(3000);
                 expect(message).to.deep.equal(["0", "1", "2", "3", "4"]);
             }));
         });
