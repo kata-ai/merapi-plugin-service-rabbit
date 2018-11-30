@@ -191,7 +191,7 @@ describe("Merapi Plugin Service: Subscriber", function() {
                     yield trigger(i);
                 }
 
-                yield sleep(1000);
+                yield sleep(5000);
                 expect(messageA).to.deep.equal([0, 2, 4]);
                 expect(messageB).to.deep.equal([1, 3]);
             }));

@@ -168,7 +168,7 @@ describe("Merapi Plugin Service: Queue Publisher", function() {
                     channel.ack(msg);
                 });
 
-                yield sleep(1000);
+                yield sleep(5000);
                 expect(message).to.deep.equal(["0", "1", "2", "3", "4"]);
             }));
         });
