@@ -157,10 +157,7 @@ describe("Merapi Plugin Service: Publisher", function() {
                 });
             }));
 
-            // TODO
-            // skipped, since rabbit in travis is kinda slow
-            // this always returns empty string, tried in my local computer, this is always works
-            it.skip("should publish events to the same exchange for same service", async(function*(done) {
+            it("should publish events to the same exchange for same service", async(function*() {
                 this.timeout(5000);
                 let message = [];
 
@@ -191,7 +188,8 @@ describe("Merapi Plugin Service: Publisher", function() {
                         expect(message).to.deep.equal(["0", "1", "2", "3", "4"]);
                     }
                 });
-                sleep(1000);
+
+                sleep(2000);
             }));
         });
     });
