@@ -10,6 +10,8 @@ const chaiAsPromised = require("chai-as-promised");
 const merapi = require("merapi");
 const { Component, async } = require("merapi");
 
+const { rabbitConnection, rabbitUrl } = require("./configuration.js");
+
 chai.use(chaiAsPromised);
 
 /* eslint-env mocha */
@@ -31,10 +33,7 @@ describe("Merapi Plugin Service: Publisher", function() {
             secret: "abc123",
             plugins: ["service"],
             service: {
-                rabbit: {
-                    host: "localhost",
-                    port: 5672,
-                },
+                rabbit: rabbitConnection,
                 publish: {
                     incoming_message_publisher_test:
             "triggerIncomingMessagePublisherTest",
@@ -81,7 +80,7 @@ describe("Merapi Plugin Service: Publisher", function() {
         yield publisherBContainer.start();
 
         service = yield publisherAContainer.resolve("service");
-        connection = yield amqplib.connect("amqp://localhost");
+        connection = yield amqplib.connect(rabbitUrl);
         channel = yield connection.createChannel();
 
         yield sleep(100);

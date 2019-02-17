@@ -10,6 +10,8 @@ const chaiAsPromised = require("chai-as-promised");
 const merapi = require("merapi");
 const { async, Component } = require("merapi");
 
+const { rabbitConnection, rabbitUrl } = require("./configuration.js");
+
 chai.use(chaiAsPromised);
 
 /* eslint-env mocha */
@@ -33,10 +35,7 @@ describe("Merapi Plugin Service: Subscriber", function() {
             main: "mainCom",
             plugins: ["service"],
             service: {
-                rabbit: {
-                    host: "localhost",
-                    port: 5672,
-                },
+                rabbit: rabbitConnection,
                 publish: {
                     incoming_message_subscriber_test:
             "triggerIncomingMessageSubscriberTest",
@@ -51,20 +50,14 @@ describe("Merapi Plugin Service: Subscriber", function() {
             main: "mainCom",
             plugins: ["service"],
             service: {
-                rabbit: {
-                    host: "localhost",
-                    port: 5672,
-                    consumerPrefetch: 1,
-                    maxAttemtps: 5,
-                    retryDelay: 50,
-                },
+                rabbit: rabbitConnection,
                 subscribe: {
                     "yb-core": {
                         incoming_message_subscriber_test: "mainCom.handleIncomingMessage",
                     },
                 },
                 registry: {
-                    "yb-core": `http://localhost:${5030 + currentIteration}`,
+                    "yb-core": `http://${rabbitConnection.username}:${rabbitConnection.password}@${rabbitConnection.host}:${5030 + currentIteration}`,
                 },
             },
         };
@@ -130,7 +123,7 @@ describe("Merapi Plugin Service: Subscriber", function() {
 
         service = yield subscriberAContainer.resolve("service");
         serviceSubRabbit = yield subscriberAContainer.resolve("serviceSubRabbit");
-        connection = yield amqplib.connect("amqp://localhost");
+        connection = yield amqplib.connect(rabbitUrl);
         channel = yield connection.createChannel();
 
         yield sleep(100);

@@ -9,6 +9,8 @@ const sleep = require("then-sleep");
 const merapi = require("merapi");
 const { Component, async } = require("merapi");
 
+const { rabbitConnection, rabbitUrl } = require("./configuration.js");
+
 /* eslint-env mocha */
 
 describe("Merapi Plugin Service: Queue Publisher", function() {
@@ -28,10 +30,7 @@ describe("Merapi Plugin Service: Queue Publisher", function() {
             secret: "abc123",
             plugins: ["service"],
             service: {
-                rabbit: {
-                    host: "localhost",
-                    port: 5672,
-                },
+                rabbit: rabbitConnection,
                 queue: {
                     publish: {
                         subscriber: {
@@ -80,7 +79,7 @@ describe("Merapi Plugin Service: Queue Publisher", function() {
         yield publisherBContainer.start();
 
         service = yield publisherAContainer.resolve("service");
-        connection = yield amqplib.connect("amqp://localhost");
+        connection = yield amqplib.connect(rabbitUrl);
         channel = yield connection.createChannel();
 
         yield sleep(100);

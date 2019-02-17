@@ -191,3 +191,20 @@ class MainCom extends component {
     * Create a RabbitMQ queue
     * Bind the queue to an exchange (exchange's name: `<namespace>.<publisher>.<event>`)
     * Consume its messages
+
+
+# TESTING
+
+In case of you are using custom rabbitmq connection, you can provide an env file as follow:
+
+```bash
+# filename: ./test/test.env
+export RABBIT_HOST=0.0.0.0
+export RABBIT_PORT=5672
+export RABBIT_USERNAME=root
+export RABBIT_PASSWORD=toor
+```
+
+and perform:
+
+`source ./test/test.env && npm test`

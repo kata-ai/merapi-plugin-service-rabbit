@@ -4,3 +4,4 @@ config.json
 coverage
 .vscode
 .nyc_output
+test/test.env

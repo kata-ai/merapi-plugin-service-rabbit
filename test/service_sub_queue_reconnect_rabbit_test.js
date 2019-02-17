@@ -19,8 +19,6 @@ describe("Merapi Plugin Service: Queue Subscriber", function() {
     let connection = {};
     let channel = {};
     let messageA = [];
-    let messageB = [];
-    let currentIteration = 1;
 
     beforeEach(async(function*() {
         this.timeout(5000);
@@ -35,11 +33,11 @@ describe("Merapi Plugin Service: Queue Subscriber", function() {
                 queue: {
                     publish: {
                         subscriber: {
-                            sub_queue_publisher_test: "inQueuePublisherTest",
+                            sub_queue_reconnect_publisher_test: "inQueuePublisherTest",
                         },
                     },
                 },
-                port: 5130 + currentIteration,
+                port: 5135,
             },
         };
 
@@ -52,7 +50,7 @@ describe("Merapi Plugin Service: Queue Subscriber", function() {
                 rabbit: rabbitConnection,
                 queue: {
                     subscribe: {
-                        sub_queue_publisher_test: "mainCom.handleIncomingMessage",
+                        sub_queue_reconnect_publisher_test: "mainCom.handleIncomingMessage",
                     },
                 },
             },
@@ -75,7 +73,7 @@ describe("Merapi Plugin Service: Queue Subscriber", function() {
         );
         yield publisherContainer.start();
 
-        subscriberConfig.service.port = 5210 + currentIteration;
+        subscriberConfig.service.port = 5212;
         subscriberAContainer = merapi({
             basepath: __dirname,
             config: subscriberConfig,
@@ -96,27 +94,6 @@ describe("Merapi Plugin Service: Queue Subscriber", function() {
         );
         yield subscriberAContainer.start();
 
-        subscriberConfig.service.port = 5310 + currentIteration;
-        subscriberBContainer = merapi({
-            basepath: __dirname,
-            config: subscriberConfig,
-        });
-
-        subscriberBContainer.registerPlugin(
-            "service-rabbit",
-            require("../index.js")(subscriberBContainer)
-        );
-        subscriberBContainer.register(
-            "mainCom",
-            class MainCom extends Component {
-                start() {}
-                *handleIncomingMessage(payload) {
-                    messageB.push(payload);
-                }
-            }
-        );
-        yield subscriberBContainer.start();
-
         service = yield subscriberAContainer.resolve("service");
         connection = yield amqplib.connect(rabbitUrl);
         channel = yield connection.createChannel();
@@ -126,59 +103,40 @@ describe("Merapi Plugin Service: Queue Subscriber", function() {
 
     afterEach(async(function*() {
         yield subscriberAContainer.stop();
-        yield subscriberBContainer.stop();
         yield channel.close();
         yield connection.close();
-        currentIteration++;
     }));
 
     describe("Subscriber service", function() {
-        describe("getServiceInfo", function() {
-            it("should list sub-queue-rabbit", async(function*() {
-                yield request(service._express)
-                    .get("/info")
-                    .expect(function(res) {
-                        expect(
-                            Object.keys(res.body.modules).some(
-                                key => key == "sub-queue-rabbit"
-                            )
-                        ).to.be.true;
-                    });
-            }));
-        });
-
-        describe("when initializing", function() {
-            it("should resolve handleIncomingMessage", async(function*() {
-                expect(
-                    (yield subscriberAContainer.resolve("mainCom")).handleIncomingMessage
-                ).to.not.be.null;
-                expect(
-                    (yield subscriberBContainer.resolve("mainCom")).handleIncomingMessage
-                ).to.not.be.null;
-            }));
-
-            it("should create a queue", async(function*() {
-                yield channel.assertQueue(
-                    "default.queue.subscriber.sub_queue_publisher_test",
-                    { durable: true }
-                );
-            }));
-        });
 
         describe("when subscribing event", function() {
-            it("should distribute accross all subscribers using round robin method", async(function*() {
+            it("published event should be caught", async(function*() {
                 this.timeout(5000);
                 let trigger = yield publisherContainer.resolve("inQueuePublisherTest");
 
-                for (let i = 0; i < 5; i++) {
-                    yield sleep(100);
-                    yield trigger(i);
-                }
+                // send "0"
+                yield sleep(100);
+                yield trigger(0);
+                yield sleep(1000);
+                // messageA should be [0]
+                expect(messageA).to.deep.equal([0]);
 
-                yield sleep(3000);
-                expect(messageA).to.deep.equal([0, 2, 4]);
-                expect(messageB).to.deep.equal([1, 3]);
+                // emulate broken connection
+                yield channel.close();
+                yield connection.close();
+                // reconnect
+                connection = yield amqplib.connect(rabbitUrl);
+                channel = yield connection.createChannel();
+
+                // send "1"
+                yield sleep(100);
+                yield trigger(1);
+                yield sleep(1000);
+                // messageA should be [1]
+                expect(messageA).to.deep.equal([0, 1]);
+
             }));
         });
+
     });
 });
