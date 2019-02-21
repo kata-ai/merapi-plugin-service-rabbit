@@ -203,6 +203,9 @@ export RABBIT_HOST=0.0.0.0
 export RABBIT_PORT=5672
 export RABBIT_USERNAME=root
 export RABBIT_PASSWORD=toor
+# these commands are for reconnecting test
+export START_RABBIT_COMMAND="docker start rabbitmq"
+export STOP_RABBIT_COMMAND="docker stop rabbitmq"
 ```
 
 and perform:
