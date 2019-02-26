@@ -26,7 +26,6 @@
     "license": "ISC",
     "homepage": "https://github.com/kata-ai/merapi-plugin-service-rabbit#readme",
     "dependencies": {
-        "amqp-connection-manager": "^2.3.0",
         "amqplib": "^0.5.3",
         "merapi": "^0.16.0",
         "merapi-plugin-service": "^0.3.5",

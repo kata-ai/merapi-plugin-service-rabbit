@@ -1,69 +1,79 @@
-const q = 'tasks';
-
 const { execSync } = require("child_process");
-const amqplib = require("amqplib");
+const amqp = require("amqplib");
 
-async function createConnection() {
-    const id = Math.round(Math.random() * 1000);
-    console.log(`* connect ${id}`);
-    const pconn = amqplib.connect("amqp://root:toor@0.0.0.0:5672/").then((conn) => {
-        conn.on("close", (error) => {
-            console.log(`* connection closed ${id}:`, error);
-        });
-        conn.on("error", (error) => {
-            console.log(`* connection error ${id}:`, error);
-        });
-        return conn;
+async function sleep(delay) {
+    return new Promise((resolve, reject) => {
+        setTimeout(resolve, delay);
     });
-    console.log(`* connected ${id}`);
-    return pconn;
 }
 
-async function createChannel(conn) {
-    const id = Math.round(Math.random() * 1000);
-    console.log(`* create channel ${id}`);
-    const channel = conn.createChannel({durable: false});
-    console.log(`* channel created ${id}`);
-    return channel;
-}
-
-async function createConnectionAndChannel() {
-    const conn = await createConnection();
-    const channel = await createChannel(conn);
-    return channel;
-}
-
-async function main(channels) {
-
-    if (!channels) {
-        channels = await Promise.all([createConnectionAndChannel(), createConnectionAndChannel()]);
-    }
-    const [publisherChannel, consumerChannel] = channels;
-
-    // publisher
-    console.log("publish");
-    await publisherChannel.assertQueue(q).then(function(ok) {
-        console.log("published");
-        return publisherChannel.sendToQueue(q, Buffer.from("something to do"));
-    });
-
-    // consumer
-    console.log("consume");
-    await consumerChannel.assertQueue(q).then(function(ok) {
-        console.log("consumed");
-        return consumerChannel.consume(q, function(msg) {
-            if (msg !== null) {
-                console.log(msg.content.toString());
-                consumerChannel.ack(msg);
+async function createChannel(config) {
+    const { url, publishers, listeners } = Object.assign({url: "", publishers: {}, listeners: {}}, config);
+    try {
+        // create connection
+        const connection = await amqp.connect(url);
+        let channel = null;
+        connection._channels = [];
+        connection.on("error", (error) => {
+            console.error("Connection error : ", config, error);
+        });
+        connection.on("close", async (error) => {
+            if (channel) {
+                channel.close();
             }
+            console.error("Connection close : ", config, error);
+            await sleep(1000);
+            createChannel(config);
         });
-    });
-
-    await new Promise((resolve, reject) => {
-        setTimeout(resolve, 1000);
-    });
-
-    await main(channels);
+        // create channel
+        channel = await connection.createConfirmChannel();
+        channel.on("error", (error) => {
+            console.error("Channel error : ", config, error);
+        });
+        channel.on("close", (error) => {
+            console.error("Channel close : ", config, error);
+        });
+        // register listeners
+        for (queue in listeners) {
+            const callback = listeners[queue];
+            channel.assertQueue(queue, { durable: false });
+            channel.consume(queue, callback);
+        }
+        // publish
+        for (queue in publishers) {
+            const message = publishers[queue];
+            channel.assertQueue(queue, { durable: false });
+            channel.sendToQueue(queue, message);
+        }
+        return channel;
+    } catch (error) {
+        console.error("Create connection error : ", error);
+        await sleep(1000);
+        createChannel(config);
+    }
 }
 
-main();
+async function main() {
+    const channelPublish = await createChannel({
+        url: "amqp://root:toor@0.0.0.0:5672",
+        publishers: {
+            "queue": Buffer.from("hello"),
+        }
+    });
+
+    execSync("docker stop rabbitmq");
+    execSync("docker start rabbitmq");
+
+    const channelConsume = await createChannel({
+        url: "amqp://root:toor@0.0.0.0:5672",
+        listeners: {
+            "queue": (message) => {
+                console.log("Receive message ", message.content.toString());
+            },
+        }
+    });
+
+    return true;
+}
+
+main().catch((error) => console.error(error));
