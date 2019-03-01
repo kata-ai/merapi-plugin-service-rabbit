@@ -5,11 +5,9 @@ const ServiceSub = require("merapi-plugin-service/lib/service_sub");
 const pack = require("../package");
 const request = require("requestretry");
 
-const Rabbit = require("./Rabbit");
-
 class ServiceSubRabbit extends ServiceSub {
 
-    constructor(config, logger, injector, servicePubRabbit) {
+    constructor(config, logger, injector, amqp, servicePubRabbit) {
         super(config, logger, injector);
 
         this.config = config;

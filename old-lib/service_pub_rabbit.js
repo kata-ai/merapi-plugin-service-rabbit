@@ -3,11 +3,9 @@
 const { Component, AsyncEmitter } = require("merapi");
 const pack = require("../package");
 
-const Rabbit = require("./Rabbit");
-
 class ServicePubRabbit extends Component.mixin(AsyncEmitter) {
 
-    constructor(config, logger, injector, servicePub) {
+    constructor(config, logger, injector, amqp, servicePub) {
         super();
 
         this.config = config;
