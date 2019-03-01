@@ -13,6 +13,8 @@ module.exports = function () {
             container.register("servicePubQueueRabbit", require("./lib/service_pub_queue_rabbit"));
             container.register("serviceSubQueueRabbit", require("./lib/service_sub_queue_rabbit"));
             container.alias("serviceSubQueue", "serviceSubQueueRabbit");
+
+            container.register("amqp", require("./lib/service_amqp"));
         },
         *onInit(container) {
             let service = yield container.resolve("service");

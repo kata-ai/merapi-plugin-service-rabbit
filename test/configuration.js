@@ -1,5 +1,3 @@
-const { exec } = require("child_process");
-
 const rabbitConnection = {
     host: process.env.RABBIT_HOST || "localhost",
     port: process.env.RABBIT_PORT || 5672,
@@ -11,12 +9,8 @@ const rabbitConnection = {
 };
 
 const rabbitUrl = `amqp://${rabbitConnection.user}:${rabbitConnection.password}@${rabbitConnection.host}:${rabbitConnection.port}`;
-const startRabbitCommand = process.env.START_RABBIT_COMMAND;
-const stopRabbitCommand = process.env.STOP_RABBIT_COMMAND;
 
 module.exports = {
     rabbitConnection,
     rabbitUrl,
-    startRabbitCommand,
-    stopRabbitCommand,
 };
