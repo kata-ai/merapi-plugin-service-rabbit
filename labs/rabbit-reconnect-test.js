@@ -21,8 +21,16 @@ async function main() {
     const rabbitSub = new Rabbit({
         connection: { connectionString: rabbitUrl },
         serviceName: "beta",
-        publisherName: "alpha",
-        sub: { pesanBakso: (payload) => console.log("Pesan Bakso", payload) },
+        publisher: {
+            someRegistryName : {
+                pesanBakso: "alpha"
+            }
+        },
+        sub: { 
+            someRegistryName: {
+                pesanBakso: (payload) => console.log("Pesan Bakso", payload) 
+            },
+        },
     });
 
     // restart rabbit
