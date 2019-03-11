@@ -2,12 +2,6 @@ const { execSync } = require("child_process");
 const Rabbit = require("../lib/Rabbit.js");
 const { rabbitConnection, rabbitUrl, startRabbitCommand, stopRabbitCommand } = require("../test/configuration.js");
 
-async function sleep(delay) {
-    return new Promise((resolve, reject) => {
-        setTimeout(resolve, delay);
-    });
-}
-
 async function main() {
 
     // create subscribers
@@ -52,6 +46,18 @@ async function main() {
         pub: { pesanBakso: "pesanBaksoTrigger" },
         pubPayload: { qty: 3, saos: "tomat" }
     });
+
+    // re use rabbitPub
+    rabbitPub.publish({qty: 2, saos: "sambal"});
+
+    // only create publisher without publish
+    const anotherRabbitPub = new Rabbit({
+        connection: { connectionString: rabbitUrl },
+        serviceName: "alpha",
+        pub: { pesanBakso: "pesanBaksoTrigger" },
+    });
+
+    anotherRabbitPub.publish({qty: 1, saos: "kecap"});
 
 }
 
