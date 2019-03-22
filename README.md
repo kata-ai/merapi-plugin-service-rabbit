@@ -210,4 +210,7 @@ export STOP_RABBIT_COMMAND="docker stop rabbitmq"
 
 and perform:
 
-`source ./test/test.env && npm test`
+```
+source ./test/test.env && npm test
+source ./test/test.env && node ./reconnect-example/rabbit-reconnect-test.js
+```
