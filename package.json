@@ -1,6 +1,6 @@
 {
     "name": "merapi-plugin-service-rabbit",
-    "version": "0.5.2",
+    "version": "0.6.0",
     "description": "Provide RabbitMQ integration interface",
     "main": "index.js",
     "scripts": {
@@ -21,7 +21,9 @@
     "contributors": [
         "Yoga Aliarham <aliarham@kata.ai>",
         "Ricky Anders <ricky@kata.ai>",
-        "Reyhan Sofian <reyhan@kata.ai>"
+        "Reyhan Sofian <reyhan@kata.ai>",
+        "Armanda Caesar <armand@kata.ai>",
+        "Go Frendi Gunawan <gofrendi@kata.ai>"
     ],
     "license": "ISC",
     "homepage": "https://github.com/kata-ai/merapi-plugin-service-rabbit#readme",
