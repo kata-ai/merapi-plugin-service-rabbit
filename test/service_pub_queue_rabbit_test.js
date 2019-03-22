@@ -86,6 +86,7 @@ describe("Merapi Plugin Service: Queue Publisher", function() {
     }));
 
     afterEach(async(function*() {
+        yield sleep(100);
         yield publisherAContainer.stop();
         yield publisherBContainer.stop();
         yield channel.close();
@@ -121,14 +122,12 @@ describe("Merapi Plugin Service: Queue Publisher", function() {
                 expect(triggerB).to.not.be.null;
             }));
 
-            /* No need to create queue now, let's just make it when it is really needed
             it("should create queue", async(function*() {
                 const inQueueResult = yield channel.checkQueue("default.queue.subscriber.in_queue_publisher_test");
                 const outQueueResult = yield channel.checkQueue("default.queue.subscriber.out_queue_publisher_test");
                 expect(inQueueResult.queue).to.equal("default.queue.subscriber.in_queue_publisher_test");
                 expect(outQueueResult.queue).to.equal("default.queue.subscriber.out_queue_publisher_test");
             }));
-            */
         });
 
         describe("when publishing event", function() {

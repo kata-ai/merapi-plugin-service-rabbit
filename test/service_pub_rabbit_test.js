@@ -87,6 +87,7 @@ describe("Merapi Plugin Service: Publisher", function() {
     }));
 
     afterEach(async(function*() {
+        yield sleep(100);
         yield publisherAContainer.stop();
         yield publisherBContainer.stop();
         yield channel.close();
@@ -127,7 +128,6 @@ describe("Merapi Plugin Service: Publisher", function() {
                 );
             });
 
-            /* No need to create exchange now, let's just make it when it is really needed
             it("should create exchanges", async(function*() {
                 yield channel.checkExchange(
                     "default.publisher.incoming_message_publisher_test"
@@ -136,7 +136,6 @@ describe("Merapi Plugin Service: Publisher", function() {
                     "default.publisher.outgoing_message_publisher_test"
                 );
             }));
-            */
         });
 
         describe("when publishing event", function() {

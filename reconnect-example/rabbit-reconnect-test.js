@@ -48,7 +48,7 @@ async function main() {
     });
 
     // re use rabbitPub
-    rabbitPub.publish({qty: 2, saos: "sambal"});
+    rabbitPub.publish({ pubPayload: {qty: 2, saos: "sambal"}});
 
     // only create publisher without publish
     const anotherRabbitPub = new Rabbit({
@@ -57,7 +57,7 @@ async function main() {
         pub: { pesanBakso: "pesanBaksoTrigger" },
     });
 
-    anotherRabbitPub.publish({qty: 1, saos: "kecap"});
+    anotherRabbitPub.publish({pubPayload: {qty: 1, saos: "kecap"}});
 
 }
 

@@ -125,6 +125,7 @@ describe("Merapi Plugin Service: Queue Subscriber", function() {
     }));
 
     afterEach(async(function*() {
+        yield sleep(100);
         yield subscriberAContainer.stop();
         yield subscriberBContainer.stop();
         yield channel.close();
