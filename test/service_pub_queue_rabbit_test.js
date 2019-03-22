@@ -86,12 +86,15 @@ describe("Merapi Plugin Service: Queue Publisher", function() {
     }));
 
     afterEach(async(function*() {
-        yield sleep(100);
-        yield publisherAContainer.stop();
-        yield publisherBContainer.stop();
-        yield channel.close();
-        yield connection.close();
-
+        try {
+            yield sleep(100);
+            yield publisherAContainer.stop();
+            yield publisherBContainer.stop();
+            yield channel.close();
+            yield connection.close();
+        } catch (error) {
+            // do nothing
+        }
         currentIteration++;
     }));
 
