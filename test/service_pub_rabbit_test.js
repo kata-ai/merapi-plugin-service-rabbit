@@ -87,15 +87,10 @@ describe("Merapi Plugin Service: Publisher", function() {
     }));
 
     afterEach(async(function*() {
-        try {
-            yield sleep(100);
-            yield publisherAContainer.stop();
-            yield publisherBContainer.stop();
-            yield channel.close();
-            yield connection.close();
-        } catch (error) {
-            // do nothing
-        }
+        yield publisherAContainer.stop();
+        yield publisherBContainer.stop();
+        yield channel.close();
+        yield connection.close();
         currentIteration++;
     }));
 
