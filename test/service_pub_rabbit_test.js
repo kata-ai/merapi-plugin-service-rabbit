@@ -26,6 +26,7 @@ describe("Merapi Plugin Service: Publisher", function() {
     this.timeout(5000);
 
     beforeEach(async(function*() {
+        yield sleep(100);
         let publisherConfig = {
             name: "publisher",
             version: "1.0.0",

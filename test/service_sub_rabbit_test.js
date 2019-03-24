@@ -28,6 +28,7 @@ describe("Merapi Plugin Service: Subscriber", function() {
 
     beforeEach(async(function*() {
         this.timeout(5000);
+        yield sleep(100);
 
         let publisherConfig = {
             name: "publisher",
