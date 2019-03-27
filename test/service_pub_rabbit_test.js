@@ -26,6 +26,7 @@ describe("Merapi Plugin Service: Publisher", function() {
     this.timeout(5000);
 
     beforeEach(async(function*() {
+        yield sleep(100);
         let publisherConfig = {
             name: "publisher",
             version: "1.0.0",
@@ -83,15 +84,19 @@ describe("Merapi Plugin Service: Publisher", function() {
         connection = yield amqplib.connect(rabbitUrl);
         channel = yield connection.createChannel();
 
-        yield sleep(100);
+        yield sleep(1000);
     }));
 
     afterEach(async(function*() {
         yield publisherAContainer.stop();
         yield publisherBContainer.stop();
-        yield channel.close();
+        try {
+            // for unknown reason, sometime channel is already closed
+            yield channel.close();
+        } catch(error) {
+            // do nothing
+        }
         yield connection.close();
-
         currentIteration++;
     }));
 
@@ -161,6 +166,7 @@ describe("Merapi Plugin Service: Publisher", function() {
                 let message = [];
 
                 q = yield channel.assertQueue("default.queue2");
+                yield sleep(100);
                 triggerA = yield publisherAContainer.resolve(
                     "triggerOutgoingMessagePublisherTest"
                 );
@@ -170,7 +176,7 @@ describe("Merapi Plugin Service: Publisher", function() {
                 exchangeName = "default.publisher.outgoing_message_publisher_test";
 
                 for (let i = 0; i < 5; i++) {
-                    yield sleep(150);
+                    yield sleep(100);
                     if (i % 2 == 0) {
                         yield triggerA(i);
                     } else {
