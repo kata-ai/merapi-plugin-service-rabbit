@@ -28,6 +28,11 @@ module.exports = function () {
             let serviceSubQueueRabbit = yield container.resolve("serviceSubQueueRabbit");
             service.addModule("pub-queue-rabbit", servicePubQueueRabbit);
             service.addModule("sub-queue-rabbit", serviceSubQueueRabbit);
+        },
+     
+        *onStop(container) {
+            let service = yield container.resolve("amqp");
+            yield service.stop();
         }
     };
 };
